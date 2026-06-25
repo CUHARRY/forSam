@@ -354,7 +354,7 @@
     "Tuhade naal bitaaye eh tinn mahine kise supne varge rahe ne—oh supna jo main sochya si kade sach nahi hona.Tusi hauli jehe meri zindagi 'ch aaye, te kaafi kuch badal ditta.",
     "Mainu tuhadi har nikki nikki gall yaad ae. Twada Pyar, Twada Pain, Twada Gussa, Twada Fikar, Twade Touch, Twada Mazaak, Twada Sab kuchh Save Kari baitha Dil ch.",
     "Agge zindagi jithe vi lai ke jaave, main bahut shukar-guzar han ki meri zindagi 'ch tusi ho.",
-    "Bs Ik Arzi hai, Kadi mere to door nai hona, na menu block krna, Baki twade Nakhre, Naraazgi, Khushiyan, Sab Demands twade kehn to pehle pooriyan krniya ne mai.",
+    "Bs Ik Arzi hai, Kadi meri kisi gal nu galat na smajna, na menu block krna, Baki twade Nakhre, Naraazgi, Khushiyan, Sab Demands twade kehn to pehle pooriyan krniya ne mai.",
   ];
   // ─────────────────────────────────────────────────────────────────
 
@@ -413,7 +413,7 @@
         const current = built + separator + line.slice(0, charIdx);
         bodyEl.innerHTML = current.replace(/\n/g, '<br>') + '<span class="cursor"></span>';
         charIdx++;
-        setTimeout(typeChar, 26 + Math.random() * 20);
+        setTimeout(typeChar, 26 + Math.random() * 150);
       } else {
         setTimeout(() => typeLines(lines, idx + 1, built + separator + line), 500);
       }
