@@ -331,7 +331,7 @@
         const current = prefix + (lineIdx > 0 ? '\n\n' : '') + line.slice(0, charIdx);
         bodyEl.innerHTML = current.replace(/\n/g, '<br>') + '<span class="cursor" id="cursor"></span>';
         charIdx++;
-        setTimeout(typeChar, 28 + Math.random() * 22);
+        setTimeout(typeChar, 80 + Math.random() * 110);
       } else {
         const newBuilt = prefix + (lineIdx > 0 ? '\n\n' : '') + line;
         setTimeout(() => typeLines(lines, lineIdx + 1, newBuilt), 520);
