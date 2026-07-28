@@ -1,382 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Our stars 🌸</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Special Story Map 🗺️❤️</title>
+  
+  <!-- Leaflet CSS for Map rendering -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- FontAwesome for Heart Marker Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  body {
-    min-height: 100vh;
-    min-height: 100dvh;
-    height: 100vh;
-    height: 100dvh;
-    background: #080614;
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    font-family: 'DM Sans', sans-serif;
-    -webkit-tap-highlight-color: transparent;
-  }
+  <style>
+    /* Reset & Fullscreen Map Layout */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  canvas {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-  }
+    body, html {
+      width: 100%;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
 
-  .moon {
-    position: fixed;
-    top: 32px; right: 40px;
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: #fff8e8;
-    box-shadow: 0 0 28px 8px rgba(255,240,180,0.15), 0 0 60px 20px rgba(255,240,180,0.06);
-    z-index: 1;
-  }
-  .moon::after {
-    content: '';
-    position: absolute;
-    top: 6px; left: 8px;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: #0e0b22;
-  }
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
 
-  .page-title {
-    position: fixed;
-    top: 36px; left: 0; right: 0;
-    text-align: center;
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    font-size: 1rem;
-    color: rgba(255,210,235,0.45);
-    letter-spacing: 0.12em;
-    z-index: 1;
-    pointer-events: none;
-  }
+    /* Custom Heart Marker Styling */
+    .custom-heart-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e63946;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      border: 2px solid white;
+      transition: transform 0.2s ease;
+    }
 
-  .hint {
-    position: fixed;
-    bottom: 28px; left: 0; right: 0;
-    text-align: center;
-    font-size: 0.72rem;
-    color: rgba(255,200,230,0.3);
-    font-style: italic;
-    letter-spacing: 0.1em;
-    z-index: 1;
-    pointer-events: none;
-    animation: breathe 3s ease-in-out infinite;
-  }
-  @keyframes breathe {
-    0%,100% { opacity: 0.4; }
-    50% { opacity: 1; }
-  }
+    .custom-heart-pin:hover {
+      transform: rotate(-45deg) scale(1.15);
+    }
 
-  .stars-layer {
-    position: fixed;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-  }
+    .custom-heart-pin i {
+      transform: rotate(45deg);
+      font-size: 16px;
+    }
 
-  .star {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    pointer-events: all;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-  }
+    /* Floating Header Overlay */
+    .map-header {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 10px 24px;
+      border-radius: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
 
-  .star-core {
-    border-radius: 50%;
-    width: var(--sz);
-    height: var(--sz);
-    background: var(--col);
-    box-shadow: 0 0 8px 3px var(--col), 0 0 18px 6px var(--glow);
-    animation: twinkle var(--td) ease-in-out infinite;
-    animation-delay: var(--dl);
-    transition: transform 0.2s;
-  }
-  .star:active .star-core {
-    transform: scale(1.5);
-  }
+    .map-header h1 {
+      font-size: 1.1rem;
+      color: #1d3557;
+      font-weight: 600;
+    }
 
-  /* small filler stars - no label, more subtle */
-  .star.filler .star-core {
-    width: var(--sz);
-    height: var(--sz);
-    opacity: 0.55;
-  }
+    /* Memory Popup Card Styling */
+    .leaflet-popup-content-wrapper {
+      border-radius: 16px;
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    }
 
-  @keyframes twinkle {
-    0%,100% { opacity: 0.7; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
-  }
+    .leaflet-popup-content {
+      margin: 0 !important;
+      width: 260px !important;
+    }
 
-  .star-label {
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    font-size: 0.56rem;
-    color: rgba(255,215,240,0.5);
-    white-space: nowrap;
-    pointer-events: none;
-    letter-spacing: 0.02em;
-  }
+    .memory-card {
+      text-align: left;
+    }
 
-  .lines-svg {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    width: 100%; height: 100%;
-  }
+    .memory-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      display: block;
+    }
 
-  .popup {
-    position: fixed;
-    left: 50%;
-    bottom: 70px;
-    transform: translateX(-50%) scale(0.92) translateY(12px);
-    width: min(320px, 88vw);
-    max-height: 60vh;
-    overflow-y: auto;
-    background: rgba(14, 8, 32, 0.94);
-    border: 0.5px solid rgba(255,180,220,0.2);
-    border-radius: 20px;
-    padding: 1.4rem 1.5rem 1.2rem;
-    z-index: 10;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
-  .popup.show {
-    opacity: 1;
-    pointer-events: all;
-    transform: translateX(-50%) scale(1) translateY(0);
-  }
+    .memory-card-body {
+      padding: 14px;
+    }
 
-  .popup-close {
-    position: absolute;
-    top: 12px; right: 16px;
-    font-size: 1.1rem;
-    color: rgba(255,180,220,0.35);
-    cursor: pointer;
-    line-height: 1;
-    padding: 4px;
-  }
+    .memory-card h3 {
+      font-size: 1.05rem;
+      color: #1d3557;
+      margin-bottom: 2px;
+    }
 
-  .popup-emoji {
-    font-size: 1.8rem;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
+    .memory-card .location-tag {
+      font-size: 0.75rem;
+      color: #6c757d;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 4px;
+    }
 
-  .popup-title {
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    font-size: 1.1rem;
-    color: #f9c0d8;
-    margin-bottom: 0.4rem;
-  }
+    .memory-card .date {
+      font-size: 0.78rem;
+      color: #e63946;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-  .popup-date {
-    font-size: 0.7rem;
-    color: rgba(255,180,220,0.35);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 0.7rem;
-  }
-
-  .popup-msg {
-    font-size: 0.88rem;
-    color: rgba(255,210,235,0.7);
-    line-height: 1.8;
-    font-weight: 300;
-  }
-
-  .footer-tag {
-    position: fixed;
-    bottom: 14px; left: 0; right: 0;
-    text-align: center;
-    font-family: 'DM Serif Display', serif;
-    font-style: italic;
-    font-size: 0.72rem;
-    color: rgba(255,180,220,0.2);
-    letter-spacing: 0.14em;
-    z-index: 1;
-    pointer-events: none;
-  }
-</style>
+    .memory-card p {
+      font-size: 0.85rem;
+      color: #457b9d;
+      line-height: 1.4;
+    }
+  </style>
 </head>
 <body>
 
-<canvas id="bg"></canvas>
+  <!-- Floating Title -->
+  <div class="map-header">
+    <h1>Our Special Moments Across Delhi, Haryana & Punjab 🗺️❤️</h1>
+  </div>
 
-<div class="moon"></div>
-<p class="page-title">our story, written in stars ✦</p>
+  <!-- Map Container -->
+  <div id="map"></div>
 
-<svg class="lines-svg" id="linesSvg"></svg>
-<div class="stars-layer" id="starsLayer"></div>
+  <!-- Leaflet JS Library -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<div class="popup" id="popup">
-  <span class="popup-close" id="popupClose">×</span>
-  <span class="popup-emoji" id="pEmoji"></span>
-  <div class="popup-title" id="pTitle"></div>
-  <div class="popup-date" id="pDate"></div>
-  <div class="popup-msg" id="pMsg"></div>
-</div>
+  <script>
+    // 1. YOUR 13 MEMORY LOCATIONS
+    // Coordinates pinpointed directly to each destination!
+    const memories = [
+      {
+        title: "Connaught Place",
+        state: "Delhi",
+        date: "24 April",
+        description: "Our first drive together, Gurdwara, Indiagate-our first Hug, first hand holding, leaning, Dinner together",
+        lat: 28.6315,
+        lng: 77.2167,
+        image: "photo1.jpeg"
+      },
+      {
+        title: "Gurudwara Rakab Ganj Sahib",
+        state: "Delhi",
+        date: "29 March 2026",
+        description: "Roka Day Baby.",
+        lat: 28.6189,
+        lng: 77.2081,
+        image: "photo2.jpeg"
+      },
+      {
+        title: "Qutub Minar",
+        state: "Delhi",
+        date: "29 June 2026",
+        description: "Noodles, springroll, Gol gappe, baatain, and propsal for shaadi",
+        lat: 28.5245,
+        lng: 77.1855,
+        image: "photo3.jpeg"
+      },
+      {
+        title: "Vasant Kunj",
+        state: "Delhi",
+        date: "15 May 2026",
+        description: "The Monkey bar date, cuddle, paari bot saari.",
+        lat: 28.5292,
+        lng: 77.1539,
+        image: "photo4.png"
+      },
+      {
+        title: "Delhi Cantt",
+        state: "Delhi",
+        date: "29 June 2026",
+        description: "That Khadde wali situation, and amazing pamper after that from your side baby. Pure love and first soft s3)( ).",
+        lat: 28.5961,
+        lng: 77.1322,
+        image: "photo3.jpeg"
+      },
+      {
+        title: "Hamoni Golf Camp",
+        state: "Gurugram, Haryana",
+        date: "27 May 2026",
+        description: "Kirtan, Skating, Claw machine, Hamoni and Love first best view, PubG naraazgi and manana my Love",
+        lat: 28.4975,
+        lng: 77.0189,
+        image: "photo6.jpeg"
+      },
+      {
+        title: "Janakpuri District Park",
+        state: "Delhi",
+        date: "13 June 2026 and 7 July 2026",
+        description: "Ambar ka bday and Our love site. Also hmare 100 days b yahee pe mnaye hmne. Meri Jaan Ji.",
+        lat: 28.6255,
+        lng: 77.0852,
+        image: "photo7.jpeg"
+      },
+      {
+        title: "Unity One Mall",
+        state: "Janakpuri, Delhi",
+         date: "6 April 2025 and 4 April 2026 ",
+        description: "Dekha dikhai, and pehli chori chori date",
+        lat: 28.6288,
+        lng: 77.0782,
+        image: "photo8.jpeg"
+      },
+      {
+        title: "Pacific Mall",
+        state: "Tagore Garden, Delhi",
+        date: "13 July 2026",
+        description: "Ambar Bday",
+        lat: 28.6416,
+        lng: 77.1128,
+        image: "photo9.jpeg"
+      },
+      {
+        title: "Giani's Ice Cream",
+        state: "Rajouri Garden, Delhi",
+        date: "15 May 2026",
+        description: "First Kiss, First intense Hug.. best",
+        lat: 28.6472,
+        lng: 77.1211,
+        image: "photo4.png"
+      },
+      {
+        title: "Sandoz",
+        state: "Paschim Vihar, Delhi",
+        date: "2 July 2026",
+        description: "Delicious dinners and celebration meals together with Family for the first time. chori chori pyaar.",
+        lat: 28.6682,
+        lng: 77.0935,
+        image: "photo11.jpeg"
+      },
+      {
+        title: "Hall Bazaar",
+        state: "Amritsar, Punjab",
+        date: "20 July 2026",
+        description: "Surprising you. khana ek sath, Kathey shopping first time. first time with Family, and chori chori pyar and Barista.",
+        lat: 31.6322,
+        lng: 74.8753,
+        image: "photo12.jpeg"
+      },
+      {
+        title: "Akal Takht Sahib",
+        state: "Amritsar, Punjab",
+        date: "20 July 2026",
+        description: "Kathey Ardaas Darbar sahib jaa k, Akal Takaht Sahib Matha tekna, and Fuffar ji da sanu pkdna",
+        lat: 31.6202,
+        lng: 74.8762,
+        image: "photo13.jpeg"
+      }
+    ];
 
-<p class="hint">tap a star to open a memory</p>
-<p class="footer-tag">#SaHar</p>
+    // 2. Initialize Map
+    const map = L.map('map', {
+      zoomControl: false
+    }).setView([28.6139, 77.2090], 10);
 
-<script>
-// ── MEMORIES — edit title, date, msg, emoji ──────────────────────
-// type: "major" = big labeled star, "filler" = small unlabeled star (calls/chats)
-const memories = [
-  { type:"major",  emoji:"✨",  label:"day one",      title:"The day it all started",   date:"29March2026",     msg:"Sada Rishta hoia Maharaj di Mohor lagi" },
-  { type:"filler", emoji:"📞",  label:"Chats n calls",title:"Chats and calls",      date:"first week of us",    msg:"Started chatting, then calls, then little little understanding." },
-  { type:"major",  emoji:"☕",  label:"coffee",       title:"Our first coffee",          date:"Date 1",    msg:"Unplanned Surprise date with my Buggu, tusi bulaya mai bhajjeya aya, pyar dikhaya wadia feel hoia bot." },
-  { type:"filler", emoji:"🌃",  label:"",             title:"Talking till 6am",          date:"Ek Saturday",    msg:"Saari raat asi first time inni lambi gal kiti" },
-  { type:"major",  emoji:"💌",  label:"he said it",   title:"When he said it",           date:"9April",    msg:"The words that made everything feel real. Mai Qubool krya ki Samar I love you and you said ki tusi iss raste te turna chaunde o..." },
-  { type:"major",  emoji:"🚗",  label:"first ride",   title:"Chori chori gedi",           date:"Week 2",    msg:"After expressing twanu dekhn lyi gali ch aya pr dekh nai paya." },
-  { type:"filler", emoji:"☎️",  label:"Train and Rajasthan", title:"Mera Rajasthan da trip",    date:"18-21April",    msg:"Sadia bohot galla hoia, twadi tabiyat low hoi, m ghbraya. Twade ghr blinkit kita. TUsi bua wal chle gaye, apni chuchu hoi pehli waar serious wali.Pyar hoia wapis. Mai chat krda krda so gya tusi gussa hoge, pr mai mnaa lya." },
-  { type:"major",  emoji:"🌹",  label:"she said it",  title:"When she said it too",      date:"22April",    msg:"And just like that, it was certain on both sides.Harry Menu v ho gya twade naal pyar, chalo appa arrange nu love ch convert kriye... Hayee." },
-  { type:"filler", emoji:"🌙",  label:"",             title:"Twade Period Cramps",       date:"22April",    msg:"Me apna nava feture unlock krya, twade lyi andro enni care and affection aya jee kr rea c kol ponch jawa te twanu massage dva." },
-  { type:"major",  emoji:"🌆",  label:"date #1",      title:"First official date",       date:"24April",    msg:"Samar kinni pyaari date c na ae.. Enna close asi first time." },
-  { type:"major",  emoji:"🌅",  label:"month one",    title:"One whole month",           date:"Month 1",   msg:"First month complete hoia te sadia families miliyam Buggu." },
-  { type:"major",  emoji:"🏡",  label:"her door",     title:"Showing up at her door",    date:"3May",   msg:"Tu ghar wapis ayee, Ambar nu m apne naal baher le k gaya, tenu miln lyi ghar tk aya. haye.." },
-  { type:"filler", emoji:"📱",  label:"Video Calls",  title:"Video calls",               date:"5May",       msg:"VCs start hoian Pyar grow hoia" },
-  { type:"filler", emoji:"🌌",  label:"Pyaar grow hoia",             title:"Stayed up talking",         date:"Random",    msg:"Add a memory about staying up late just talking here." },
-  { type:"major",  emoji:"📱",  label:"video calls",  title:"The late night calls",      date:"Month 2",   msg:"Screens between you, but it never felt like distance." },
-  { type:"major",  emoji:"🍽️", label:"date #2",      title:"Second date, even better",  date:"Month 2",   msg:"The nerves were gone. What was left was just — good. First Kiss my love. loads of love and apki bullet." },
-  { type:"filler", emoji:"📞",  label:"Date didiscussion",  title:"Just to hear your voice",   date:"Random",    msg:"Teri awaaz sunan lyi calls office cho dhup ch baarish ch haye.." },
-  { type:"major",  emoji:"🌙",  label:"date #3",      title:"Third date, no going back", date:"Month 2",   msg:"This one sealed it. Full Pyar Hamoni ch . wow. Gurgaon date jaan ji" },
-  { type:"major",  emoji:"🌸",  label:"2 months",     title:"Two months with you",       date:"Month 2",   msg:"Happy 2 months. Every single day has been worth it. Surprise gift with slides." },
-  { type:"major",  emoji:"🎂",  label:"Bhai ka birthday", title:"Ambar's Birthday",          date:"Special day", msg:"Bemtlb chuchu and uske baad best decision of my life, tenu wapis bulana, jnkpuri le jana." },
-  { type:"major",  emoji:"♾️",  label:"forever",      title:"3 months to forever",       date:"Today",     msg:"Three months in, and it still feels like just the beginning. Here's to forever. Tenu Greece type di jga te Propose krna chaiya Fer Cantt ch tu mera sath dita, asi musibat cho bar aye apas ch pyaar kita. Love U Sammuuu." },
-  { type:"major",  emoji:"🎂",  label:"100thDay", title:"Spl 100 day",          date:"Special day", msg:"Sadey 100 Din Jaan Ji, Bot khoobsurat date, I became ur baby, u became mine. 100 gifts b poorey Again Jankpuri." },
-];
-// ─────────────────────────────────────────────────────────────────
+    // Zoom controls at bottom-right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-const canvas = document.getElementById('bg');
-const ctx = canvas.getContext('2d');
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  drawBg();
-}
-function drawBg() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let i = 0; i < 180; i++) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    const r = Math.random() * 1.2 + 0.2;
-    const op = Math.random() * 0.45 + 0.05;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255,230,245,${op})`;
-    ctx.fill();
-  }
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+    // 3. Add CartoDB Voyager Tile Layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      maxZoom: 19
+    }).addTo(map);
 
-// S-curve positions sized to fit entirely within the viewport (no scrolling)
-function getSPositions(n) {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+    // 4. Custom Heart Icon Marker
+    const createHeartIcon = () => {
+      return L.divIcon({
+        className: 'custom-icon',
+        html: `<div class="custom-heart-pin"><i class="fa-solid fa-heart"></i></div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -32]
+      });
+    };
 
-  const topPad = vh * 0.16;   // leave room for title/moon
-  const botPad = vh * 0.14;   // leave room for hint/footer
-  const usableH = vh - topPad - botPad;
-  const rowHeight = usableH / (n - 1);
+    // 5. Render Memory Pins & Collect Coordinates
+    const pathCoordinates = [];
 
-  const amp = Math.min(vw * 0.27, 95);
-  const cx = vw * 0.5;
-  const cycle = n / 2.2; // two gentle S-bends across the full height
+    memories.forEach(spot => {
+      pathCoordinates.push([spot.lat, spot.lng]);
 
-  const pts = [];
-  for (let i = 0; i < n; i++) {
-    const y = topPad + i * rowHeight;
-    const phase = (i / cycle) * Math.PI * 2;
-    const x = cx + Math.sin(phase) * amp;
-    pts.push({ x, y });
-  }
-  return pts;
-}
+      const popupHTML = `
+        <div class="memory-card">
+          <img src="${spot.image}" alt="${spot.title}">
+          <div class="memory-card-body">
+            <span class="date">${spot.date}</span>
+            <h3>${spot.title}</h3>
+            <span class="location-tag">📍 ${spot.state}</span>
+            <p>${spot.description}</p>
+          </div>
+        </div>
+      `;
 
-const palette = [
-  { col:'#f9a8d4', glow:'rgba(249,168,212,0.35)' },
-  { col:'#c4b5fd', glow:'rgba(196,181,253,0.35)' },
-  { col:'#fda4af', glow:'rgba(253,164,175,0.35)' },
-  { col:'#a5d8ff', glow:'rgba(165,216,255,0.35)' },
-  { col:'#fcd34d', glow:'rgba(252,211,77,0.3)'   },
-];
+      L.marker([spot.lat, spot.lng], { icon: createHeartIcon() })
+        .addTo(map)
+        .bindPopup(popupHTML);
+    });
 
-function buildStars() {
-  const layer = document.getElementById('starsLayer');
-  const svg   = document.getElementById('linesSvg');
-  layer.innerHTML = '';
-  svg.innerHTML = '';
+    // 6. Draw path connecting all memories
+    L.polyline(pathCoordinates, {
+      color: '#e63946',
+      weight: 3,
+      opacity: 0.7,
+      dashArray: '8, 8',
+      smoothFactor: 1
+    }).addTo(map);
 
-  const pts = getSPositions(memories.length);
-
-  for (let i = 0; i < pts.length - 1; i++) {
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', pts[i].x);
-    line.setAttribute('y1', pts[i].y);
-    line.setAttribute('x2', pts[i+1].x);
-    line.setAttribute('y2', pts[i+1].y);
-    line.setAttribute('stroke', 'rgba(255,200,230,0.1)');
-    line.setAttribute('stroke-width', '0.8');
-    svg.appendChild(line);
-  }
-
-  pts.forEach((pt, i) => {
-    const m = memories[i];
-    const c = palette[i % palette.length];
-    const isMajor = m.type === 'major';
-    const sz = isMajor ? (8 + Math.random()*2) : (4 + Math.random()*1.5);
-    const td = (2.2 + Math.random() * 1.8).toFixed(1) + 's';
-    const dl = (Math.random() * 2.5).toFixed(1) + 's';
-
-    const el = document.createElement('div');
-    el.className = 'star' + (isMajor ? '' : ' filler');
-    el.style.cssText = `left:${pt.x}px;top:${pt.y}px;--sz:${sz}px;--col:${c.col};--glow:${c.glow};--td:${td};--dl:${dl}`;
-    el.innerHTML = `
-      <div class="star-core"></div>
-      ${isMajor ? `<div class="star-label">${m.label}</div>` : ``}
-    `;
-    el.addEventListener('click', () => openPopup(i));
-    layer.appendChild(el);
-  });
-}
-
-buildStars();
-window.addEventListener('resize', buildStars);
-
-function openPopup(i) {
-  const m = memories[i];
-  document.getElementById('pEmoji').textContent = m.emoji;
-  document.getElementById('pTitle').textContent = m.title;
-  document.getElementById('pDate').textContent = m.date;
-  document.getElementById('pMsg').textContent = m.msg;
-  document.getElementById('popup').classList.add('show');
-}
-function closePopup() {
-  document.getElementById('popup').classList.remove('show');
-}
-document.getElementById('popupClose').addEventListener('click', closePopup);
-document.addEventListener('click', e => {
-  if (!e.target.closest('.star') && !e.target.closest('.popup')) closePopup();
-});
-</script>
+    // 7. Auto-fit view to encompass all locations (Delhi, Gurgaon, Amritsar)
+    const bounds = L.latLngBounds(pathCoordinates);
+    map.fitBounds(bounds, { padding: [50, 50] });
+  </script>
 </body>
 </html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Our stars 🌸</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    background: #080614;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .moon {
+    position: fixed;
+    top: 32px; right: 40px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: #fff8e8;
+    box-shadow: 0 0 28px 8px rgba(255,240,180,0.15), 0 0 60px 20px rgba(255,240,180,0.06);
+    z-index: 1;
+  }
+  .moon::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 8px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #0e0b22;
+  }
+
+  .page-title {
+    position: fixed;
+    top: 36px; left: 0; right: 0;
+    text-align: center;
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: rgba(255,210,235,0.45);
+    letter-spacing: 0.12em;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hint {
+    position: fixed;
+    bottom: 28px; left: 0; right: 0;
+    text-align: center;
+    font-size: 0.72rem;
+    color: rgba(255,200,230,0.3);
+    font-style: italic;
+    letter-spacing: 0.1em;
+    z-index: 1;
+    pointer-events: none;
+    animation: breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%,100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .stars-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .star {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: all;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .star-core {
+    border-radius: 50%;
+    width: var(--sz);
+    height: var(--sz);
+    background: var(--col);
+    box-shadow: 0 0 8px 3px var(--col), 0 0 18px 6px var(--glow);
+    animation: twinkle var(--td) ease-in-out infinite;
+    animation-delay: var(--dl);
+    transition: transform 0.2s;
+  }
+  .star:active .star-core {
+    transform: scale(1.5);
+  }
+
+  /* small filler stars - no label, more subtle */
+  .star.filler .star-core {
+    width: var(--sz);
+    height: var(--sz);
+    opacity: 0.55;
+  }
+
+  @keyframes twinkle {
+    0%,100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .star-label {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 0.56rem;
+    color: rgba(255,215,240,0.5);
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: 0.02em;
+  }
+
+  .lines-svg {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    width: 100%; height: 100%;
+  }
+
+  .popup {
+    position: fixed;
+    left: 50%;
+    bottom: 70px;
+    transform: translateX(-50%) scale(0.92) translateY(12px);
+    width: min(320px, 88vw);
+    max-height: 60vh;
+    overflow-y: auto;
+    background: rgba(14, 8, 32, 0.94);
+    border: 0.5px solid rgba(255,180,220,0.2);
+    border-radius: 20px;
+    padding: 1.4rem 1.5rem 1.2rem;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.22,1,0.36,1), transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .popup.show {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+
+  .popup-close {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-size: 1.1rem;
+    color: rgba(255,180,220,0.35);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  .popup-emoji {
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .popup-title {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #f9c0d8;
+    margin-bottom: 0.4rem;
+  }
+
+  .popup-date {
+    font-size: 0.7rem;
+    color: rgba(255,180,220,0.35);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+  }
+
+  .popup-msg {
+    font-size: 0.88rem;
+    color: rgba(255,210,235,0.7);
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .footer-tag {
+    position: fixed;
+    bottom: 14px; left: 0; right: 0;
+    text-align: center;
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 0.72rem;
+    color: rgba(255,180,220,0.2);
+    letter-spacing: 0.14em;
+    z-index: 1;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="moon"></div>
+<p class="page-title">our story, written in stars ✦</p>
+
+<svg class="lines-svg" id="linesSvg"></svg>
+<div class="stars-layer" id="starsLayer"></div>
+
+<div class="popup" id="popup">
+  <span class="popup-close" id="popupClose">×</span>
+  <span class="popup-emoji" id="pEmoji"></span>
+  <div class="popup-title" id="pTitle"></div>
+  <div class="popup-date" id="pDate"></div>
+  <div class="popup-msg" id="pMsg"></div>
+</div>
+
+<p class="hint">tap a star to open a memory</p>
+<p class="footer-tag">#SaHar</p>
+
+<script>
+// ── MEMORIES — edit title, date, msg, emoji ──────────────────────
+// type: "major" = big labeled star, "filler" = small unlabeled star (calls/chats)
+const memories = [
+  { type:"major",  emoji:"✨",  label:"day one",      title:"The day it all started",   date:"29March2026",     msg:"Sada Rishta hoia Maharaj di Mohor lagi" },
+  { type:"filler", emoji:"📞",  label:"Chats n calls",title:"Chats and calls",      date:"first week of us",    msg:"Started chatting, then calls, then little little understanding." },
+  { type:"major",  emoji:"☕",  label:"coffee",       title:"Our first coffee",          date:"Date 1",    msg:"Unplanned Surprise date with my Buggu, tusi bulaya mai bhajjeya aya, pyar dikhaya wadia feel hoia bot." },
+  { type:"filler", emoji:"🌃",  label:"",             title:"Talking till 6am",          date:"Ek Saturday",    msg:"Saari raat asi first time inni lambi gal kiti" },
+  { type:"major",  emoji:"💌",  label:"he said it",   title:"When he said it",           date:"9April",    msg:"The words that made everything feel real. Mai Qubool krya ki Samar I love you and you said ki tusi iss raste te turna chaunde o..." },
+  { type:"major",  emoji:"🚗",  label:"first ride",   title:"Chori chori gedi",           date:"Week 2",    msg:"After expressing twanu dekhn lyi gali ch aya pr dekh nai paya." },
+  { type:"filler", emoji:"☎️",  label:"Train and Rajasthan", title:"Mera Rajasthan da trip",    date:"18-21April",    msg:"Sadia bohot galla hoia, twadi tabiyat low hoi, m ghbraya. Twade ghr blinkit kita. TUsi bua wal chle gaye, apni chuchu hoi pehli waar serious wali.Pyar hoia wapis. Mai chat krda krda so gya tusi gussa hoge, pr mai mnaa lya." },
+  { type:"major",  emoji:"🌹",  label:"she said it",  title:"When she said it too",      date:"22April",    msg:"And just like that, it was certain on both sides.Harry Menu v ho gya twade naal pyar, chalo appa arrange nu love ch convert kriye... Hayee." },
+  { type:"filler", emoji:"🌙",  label:"",             title:"Twade Period Cramps",       date:"22April",    msg:"Me apna nava feture unlock krya, twade lyi andro enni care and affection aya jee kr rea c kol ponch jawa te twanu massage dva." },
+  { type:"major",  emoji:"🌆",  label:"date #1",      title:"First official date",       date:"24April",    msg:"Samar kinni pyaari date c na ae.. Enna close asi first time." },
+  { type:"major",  emoji:"🌅",  label:"month one",    title:"One whole month",           date:"Month 1",   msg:"First month complete hoia te sadia families miliyam Buggu." },
+  { type:"major",  emoji:"🏡",  label:"her door",     title:"Showing up at her door",    date:"3May",   msg:"Tu ghar wapis ayee, Ambar nu m apne naal baher le k gaya, tenu miln lyi ghar tk aya. haye.." },
+  { type:"filler", emoji:"📱",  label:"Video Calls",  title:"Video calls",               date:"5May",       msg:"VCs start hoian Pyar grow hoia" },
+  { type:"filler", emoji:"🌌",  label:"Pyaar grow hoia",             title:"Stayed up talking",         date:"Random",    msg:"Add a memory about staying up late just talking here." },
+  { type:"major",  emoji:"📱",  label:"video calls",  title:"The late night calls",      date:"Month 2",   msg:"Screens between you, but it never felt like distance." },
+  { type:"major",  emoji:"🍽️", label:"date #2",      title:"Second date, even better",  date:"Month 2",   msg:"The nerves were gone. What was left was just — good. First Kiss my love. loads of love and apki bullet." },
+  { type:"filler", emoji:"📞",  label:"Date didiscussion",  title:"Just to hear your voice",   date:"Random",    msg:"Teri awaaz sunan lyi calls office cho dhup ch baarish ch haye.." },
+  { type:"major",  emoji:"🌙",  label:"date #3",      title:"Third date, no going back", date:"Month 2",   msg:"This one sealed it. Full Pyar Hamoni ch . wow. Gurgaon date jaan ji" },
+  { type:"major",  emoji:"🌸",  label:"2 months",     title:"Two months with you",       date:"Month 2",   msg:"Happy 2 months. Every single day has been worth it. Surprise gift with slides." },
+  { type:"major",  emoji:"🎂",  label:"Bhai ka birthday", title:"Ambar's Birthday",          date:"Special day", msg:"Bemtlb chuchu and uske baad best decision of my life, tenu wapis bulana, jnkpuri le jana." },
+  { type:"major",  emoji:"♾️",  label:"forever",      title:"3 months to forever",       date:"Today",     msg:"Three months in, and it still feels like just the beginning. Here's to forever. Tenu Greece type di jga te Propose krna chaiya Fer Cantt ch tu mera sath dita, asi musibat cho bar aye apas ch pyaar kita. Love U Sammuuu." },
+  { type:"major",  emoji:"🎂",  label:"100thDay", title:"Spl 100 day",          date:"Special day", msg:"Sadey 100 Din Jaan Ji, Bot khoobsurat date, I became ur baby, u became mine. 100 gifts b poorey Again Jankpuri." },
+];
+// ─────────────────────────────────────────────────────────────────
+
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  drawBg();
+}
+function drawBg() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < 180; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const r = Math.random() * 1.2 + 0.2;
+    const op = Math.random() * 0.45 + 0.05;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,230,245,${op})`;
+    ctx.fill();
+  }
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// S-curve positions sized to fit entirely within the viewport (no scrolling)
+function getSPositions(n) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  const topPad = vh * 0.16;   // leave room for title/moon
+  const botPad = vh * 0.14;   // leave room for hint/footer
+  const usableH = vh - topPad - botPad;
+  const rowHeight = usableH / (n - 1);
+
+  const amp = Math.min(vw * 0.27, 95);
+  const cx = vw * 0.5;
+  const cycle = n / 2.2; // two gentle S-bends across the full height
+
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const y = topPad + i * rowHeight;
+    const phase = (i / cycle) * Math.PI * 2;
+    const x = cx + Math.sin(phase) * amp;
+    pts.push({ x, y });
+  }
+  return pts;
+}
+
+const palette = [
+  { col:'#f9a8d4', glow:'rgba(249,168,212,0.35)' },
+  { col:'#c4b5fd', glow:'rgba(196,181,253,0.35)' },
+  { col:'#fda4af', glow:'rgba(253,164,175,0.35)' },
+  { col:'#a5d8ff', glow:'rgba(165,216,255,0.35)' },
+  { col:'#fcd34d', glow:'rgba(252,211,77,0.3)'   },
+];
+
+function buildStars() {
+  const layer = document.getElementById('starsLayer');
+  const svg   = document.getElementById('linesSvg');
+  layer.innerHTML = '';
+  svg.innerHTML = '';
+
+  const pts = getSPositions(memories.length);
+
+  for (let i = 0; i < pts.length - 1; i++) {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', pts[i].x);
+    line.setAttribute('y1', pts[i].y);
+    line.setAttribute('x2', pts[i+1].x);
+    line.setAttribute('y2', pts[i+1].y);
+    line.setAttribute('stroke', 'rgba(255,200,230,0.1)');
+    line.setAttribute('stroke-width', '0.8');
+    svg.appendChild(line);
+  }
+
+  pts.forEach((pt, i) => {
+    const m = memories[i];
+    const c = palette[i % palette.length];
+    const isMajor = m.type === 'major';
+    const sz = isMajor ? (8 + Math.random()*2) : (4 + Math.random()*1.5);
+    const td = (2.2 + Math.random() * 1.8).toFixed(1) + 's';
+    const dl = (Math.random() * 2.5).toFixed(1) + 's';
+
+    const el = document.createElement('div');
+    el.className = 'star' + (isMajor ? '' : ' filler');
+    el.style.cssText = `left:${pt.x}px;top:${pt.y}px;--sz:${sz}px;--col:${c.col};--glow:${c.glow};--td:${td};--dl:${dl}`;
+    el.innerHTML = `
+      <div class="star-core"></div>
+      ${isMajor ? `<div class="star-label">${m.label}</div>` : ``}
+    `;
+    el.addEventListener('click', () => openPopup(i));
+    layer.appendChild(el);
+  });
+}
+
+buildStars();
+window.addEventListener('resize', buildStars);
+
+function openPopup(i) {
+  const m = memories[i];
+  document.getElementById('pEmoji').textContent = m.emoji;
+  document.getElementById('pTitle').textContent = m.title;
+  document.getElementById('pDate').textContent = m.date;
+  document.getElementById('pMsg').textContent = m.msg;
+  document.getElementById('popup').classList.add('show');
+}
+function closePopup() {
+  document.getElementById('popup').classList.remove('show');
+}
+document.getElementById('popupClose').addEventListener('click', closePopup);
+document.addEventListener('click', e => {
+  if (!e.target.closest('.star') && !e.target.closest('.popup')) closePopup();
+});
+</script>
+</body>
+</html>
