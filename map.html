@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Special Story Map 🗺️❤️</title>
+  
+  <!-- Leaflet CSS for Map rendering -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- FontAwesome for Heart Marker Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    /* Reset & Fullscreen Map Layout */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* Custom Heart Marker Styling */
+    .custom-heart-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e63946;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      border: 2px solid white;
+      transition: transform 0.2s ease;
+    }
+
+    .custom-heart-pin:hover {
+      transform: rotate(-45deg) scale(1.15);
+    }
+
+    .custom-heart-pin i {
+      transform: rotate(45deg);
+      font-size: 16px;
+    }
+
+    /* Floating Header Overlay */
+    .map-header {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      padding: 10px 24px;
+      border-radius: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .map-header h1 {
+      font-size: 1.1rem;
+      color: #1d3557;
+      font-weight: 600;
+    }
+
+    /* Memory Popup Card Styling */
+    .leaflet-popup-content-wrapper {
+      border-radius: 16px;
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      width: 260px !important;
+    }
+
+    .memory-card {
+      text-align: left;
+    }
+
+    .memory-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .memory-card-body {
+      padding: 14px;
+    }
+
+    .memory-card h3 {
+      font-size: 1.05rem;
+      color: #1d3557;
+      margin-bottom: 2px;
+    }
+
+    .memory-card .location-tag {
+      font-size: 0.75rem;
+      color: #6c757d;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .memory-card .date {
+      font-size: 0.78rem;
+      color: #e63946;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .memory-card p {
+      font-size: 0.85rem;
+      color: #457b9d;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Title -->
+  <div class="map-header">
+    <h1>Our Special Moments Across Delhi, Haryana & Punjab 🗺️❤️</h1>
+  </div>
+
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Leaflet JS Library -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // 1. YOUR 13 MEMORY LOCATIONS
+    // Coordinates pinpointed directly to each destination!
+    const memories = [
+      {
+        title: "Connaught Place",
+        state: "Delhi",
+        date: "24 April",
+        description: "Our first drive together, Gurdwara, Indiagate-our first Hug, first hand holding, leaning, Dinner together",
+        lat: 28.6315,
+        lng: 77.2167,
+        image: "photo1.jpeg"
+      },
+      {
+        title: "Gurudwara Rakab Ganj Sahib",
+        state: "Delhi",
+        date: "29 March 2026",
+        description: "Roka Day Baby.",
+        lat: 28.6189,
+        lng: 77.2081,
+        image: "photo2.jpeg"
+      },
+      {
+        title: "Qutub Minar",
+        state: "Delhi",
+        date: "29 June 2026",
+        description: "Noodles, springroll, Gol gappe, baatain, and propsal for shaadi",
+        lat: 28.5245,
+        lng: 77.1855,
+        image: "photo3.jpeg"
+      },
+      {
+        title: "Vasant Kunj",
+        state: "Delhi",
+        date: "15 May 2026",
+        description: "The Monkey bar date, cuddle, paari bot saari.",
+        lat: 28.5292,
+        lng: 77.1539,
+        image: "photo4.png"
+      },
+      {
+        title: "Delhi Cantt",
+        state: "Delhi",
+        date: "29 June 2026",
+        description: "That Khadde wali situation, and amazing pamper after that from your side baby. Pure love and first soft s3)( ).",
+        lat: 28.5961,
+        lng: 77.1322,
+        image: "photo3.jpeg"
+      },
+      {
+        title: "Hamoni Golf Camp",
+        state: "Gurugram, Haryana",
+        date: "27 May 2026",
+        description: "Kirtan, Skating, Claw machine, Hamoni and Love first best view, PubG naraazgi and manana my Love",
+        lat: 28.4975,
+        lng: 77.0189,
+        image: "photo6.jpeg"
+      },
+      {
+        title: "Janakpuri District Park",
+        state: "Delhi",
+        date: "13 June 2026 and 7 July 2026",
+        description: "Ambar ka bday and Our love site. Also hmare 100 days b yahee pe mnaye hmne. Meri Jaan Ji.",
+        lat: 28.6255,
+        lng: 77.0852,
+        image: "photo7.jpeg"
+      },
+      {
+        title: "Unity One Mall",
+        state: "Janakpuri, Delhi",
+         date: "6 April 2025 and 4 April 2026 ",
+        description: "Dekha dikhai, and pehli chori chori date",
+        lat: 28.6288,
+        lng: 77.0782,
+        image: "photo8.png"
+      },
+      {
+        title: "Pacific Mall",
+        state: "Tagore Garden, Delhi",
+        date: "13 July 2026",
+        description: "Ambar Bday",
+        lat: 28.6416,
+        lng: 77.1128,
+        image: "photo9.jpeg"
+      },
+      {
+        title: "Giani's Ice Cream",
+        state: "Rajouri Garden, Delhi",
+        date: "15 May 2026",
+        description: "First Kiss, First intense Hug.. best",
+        lat: 28.6472,
+        lng: 77.1211,
+        image: "photo4.png"
+      },
+      {
+        title: "Sandoz",
+        state: "Paschim Vihar, Delhi",
+        date: "2 July 2026",
+        description: "Delicious dinners and celebration meals together with Family for the first time. chori chori pyaar.",
+        lat: 28.6682,
+        lng: 77.0935,
+        image: "photo11.jpeg"
+      },
+      {
+        title: "Hall Bazaar",
+        state: "Amritsar, Punjab",
+        date: "20 July 2026",
+        description: "Surprising you. khana ek sath, Kathey shopping first time. first time with Family, and chori chori pyar and Barista.",
+        lat: 31.6322,
+        lng: 74.8753,
+        image: "photo12.jpeg"
+      },
+      {
+        title: "Akal Takht Sahib",
+        state: "Amritsar, Punjab",
+        date: "20 July 2026",
+        description: "Kathey Ardaas Darbar sahib jaa k, Akal Takaht Sahib Matha tekna, and Fuffar ji da sanu pkdna",
+        lat: 31.6202,
+        lng: 74.8762,
+        image: "photo13.jpeg"
+      }
+    ];
+
+    // 2. Initialize Map
+    const map = L.map('map', {
+      zoomControl: false
+    }).setView([28.6139, 77.2090], 10);
+
+    // Zoom controls at bottom-right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // 3. Add CartoDB Voyager Tile Layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      maxZoom: 19
+    }).addTo(map);
+
+    // 4. Custom Heart Icon Marker
+    const createHeartIcon = () => {
+      return L.divIcon({
+        className: 'custom-icon',
+        html: `<div class="custom-heart-pin"><i class="fa-solid fa-heart"></i></div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -32]
+      });
+    };
+
+    // 5. Render Memory Pins & Collect Coordinates
+    const pathCoordinates = [];
+
+    memories.forEach(spot => {
+      pathCoordinates.push([spot.lat, spot.lng]);
+
+      const popupHTML = `
+        <div class="memory-card">
+          <img src="${spot.image}" alt="${spot.title}">
+          <div class="memory-card-body">
+            <span class="date">${spot.date}</span>
+            <h3>${spot.title}</h3>
+            <span class="location-tag">📍 ${spot.state}</span>
+            <p>${spot.description}</p>
+          </div>
+        </div>
+      `;
+
+      L.marker([spot.lat, spot.lng], { icon: createHeartIcon() })
+        .addTo(map)
+        .bindPopup(popupHTML);
+    });
+
+    // 6. Draw path connecting all memories
+    L.polyline(pathCoordinates, {
+      color: '#e63946',
+      weight: 3,
+      opacity: 0.7,
+      dashArray: '8, 8',
+      smoothFactor: 1
+    }).addTo(map);
+
+    // 7. Auto-fit view to encompass all locations (Delhi, Gurgaon, Amritsar)
+    const bounds = L.latLngBounds(pathCoordinates);
+    map.fitBounds(bounds, { padding: [50, 50] });
+  </script>
+</body>
+</html>
