@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Our Memory Player</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg-gradient: linear-gradient(135deg, #09090e, #131127, #240d34);
-      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-bg: rgba(255, 255, 255, 0.06);
       --card-border: rgba(255, 255, 255, 0.12);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #a855f7;
-      --accent-glow: rgba(168, 85, 247, 0.35);
+      --accent-glow: rgba(168, 85, 247, 0.4);
       --danger: #ef4444;
     }
 
@@ -33,19 +33,19 @@
       justify-content: center;
       background: var(--bg-gradient);
       color: var(--text-main);
-      padding: 20px;
+      padding: 16px;
     }
 
     .player-card {
       width: 100%;
       max-width: 380px;
       background: var(--card-bg);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
       border: 1px solid var(--card-border);
       border-radius: 32px;
       padding: 24px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -56,13 +56,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .top-bar-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      margin-bottom: 18px;
     }
 
     .top-bar span {
@@ -73,6 +67,12 @@
       font-weight: 600;
     }
 
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
     .icon-btn {
       background: transparent;
       border: none;
@@ -81,24 +81,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.15s ease, opacity 0.15s ease, color 0.15s ease;
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
-    .icon-btn:hover {
-      opacity: 0.8;
-      transform: scale(1.05);
-    }
-
-    .icon-btn-danger:hover {
-      color: var(--danger);
+    .icon-btn:active {
+      transform: scale(0.92);
     }
 
     .art-container {
       width: 250px;
       height: 250px;
-      border-radius: 20px;
+      border-radius: 22px;
       overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
       margin-bottom: 20px;
       background: #111;
       border: 1px solid var(--card-border);
@@ -145,19 +140,12 @@
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: #fff;
       box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
       cursor: pointer;
-    }
-
-    .audio-view {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
 
     .progress-section {
@@ -184,12 +172,12 @@
       justify-content: center;
       gap: 28px;
       width: 100%;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     .play-btn {
-      width: 58px;
-      height: 58px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background: var(--accent);
       color: #fff;
@@ -202,8 +190,8 @@
       transition: transform 0.15s ease;
     }
 
-    .play-btn:hover {
-      transform: scale(1.06);
+    .play-btn:active {
+      transform: scale(0.92);
     }
 
     .volume-container {
@@ -219,31 +207,11 @@
       height: 4px;
     }
 
-    .spotify-view {
-      width: 100%;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .spotify-frame-wrap {
-      width: 100%;
-      height: 80px;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .spotify-frame-wrap iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
+    /* Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.82);
       backdrop-filter: blur(8px);
       display: none;
       align-items: center;
@@ -253,40 +221,15 @@
     }
 
     .modal {
-      background: #181433;
+      background: #16122e;
       border: 1px solid var(--card-border);
       border-radius: 24px;
       width: 100%;
-      max-width: 380px;
+      max-width: 360px;
       padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-
-    .tab-switcher {
-      display: flex;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-
-    .tab-btn.active {
-      background: var(--accent);
-      color: #fff;
+      gap: 14px;
     }
 
     .form-group {
@@ -317,7 +260,7 @@
     .modal-actions {
       display: flex;
       gap: 10px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .btn {
@@ -346,7 +289,7 @@
     <div class="top-bar">
       <span>Our Memories</span>
       <div class="top-bar-actions">
-        <button class="icon-btn icon-btn-danger" id="deleteTrackBtn" title="Remove Track">
+        <button class="icon-btn" id="deleteTrackBtn" title="Remove Track">
           <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
         </button>
         <button class="icon-btn" id="openModalBtn" title="Add Track">
@@ -356,57 +299,42 @@
     </div>
 
     <div class="art-container">
-      <img id="coverArt" src="" alt="Memory Photo" />
+      <img id="coverArt" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500" alt="Memory Photo" loading="lazy" />
     </div>
 
     <div class="track-info">
-      <div class="track-title" id="trackTitle">Loading playlist...</div>
+      <div class="track-title" id="trackTitle">Loading songs...</div>
       <div class="track-artist" id="trackArtist">...</div>
     </div>
 
-    <!-- 1. Audio Player View -->
-    <div class="audio-view" id="audioView">
-      <audio id="audioPlayer"></audio>
-      <div class="progress-section">
-        <input type="range" id="progressBar" class="progress-slider" value="0" min="0" max="100" />
-        <div class="time-stamps">
-          <span id="currentTime">0:00</span>
-          <span id="durationTime">0:00</span>
-        </div>
-      </div>
-      <div class="controls">
-        <button class="icon-btn" id="prevBtnAudio"><i data-lucide="skip-back" style="width: 26px; height: 26px;"></i></button>
-        <button class="play-btn" id="playBtn"><i data-lucide="play" id="playIcon" style="width: 24px; height: 24px; margin-left: 2px;"></i></button>
-        <button class="icon-btn" id="nextBtnAudio"><i data-lucide="skip-forward" style="width: 26px; height: 26px;"></i></button>
-      </div>
-      <div class="volume-container">
-        <i data-lucide="volume-2" style="width: 16px; height: 16px;"></i>
-        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.8" />
+    <audio id="audioPlayer" preload="metadata" playsinline webkit-playsinline></audio>
+
+    <div class="progress-section">
+      <input type="range" id="progressBar" class="progress-slider" value="0" min="0" max="100" />
+      <div class="time-stamps">
+        <span id="currentTime">0:00</span>
+        <span id="durationTime">0:00</span>
       </div>
     </div>
 
-    <!-- 2. Spotify Player View -->
-    <div class="spotify-view" id="spotifyView">
-      <div class="spotify-frame-wrap">
-        <iframe id="spotifyPlayer" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-      </div>
-      <div class="controls">
-        <button class="icon-btn" id="prevBtnSpotify"><i data-lucide="skip-back" style="width: 26px; height: 26px;"></i></button>
-        <button class="icon-btn" id="nextBtnSpotify"><i data-lucide="skip-forward" style="width: 26px; height: 26px;"></i></button>
-      </div>
+    <div class="controls">
+      <button class="icon-btn" id="prevBtn"><i data-lucide="skip-back" style="width: 26px; height: 26px;"></i></button>
+      <button class="play-btn" id="playBtn"><i data-lucide="play" id="playIcon" style="width: 24px; height: 24px; margin-left: 2px;"></i></button>
+      <button class="icon-btn" id="nextBtn"><i data-lucide="skip-forward" style="width: 26px; height: 26px;"></i></button>
+    </div>
+
+    <div class="volume-container">
+      <i data-lucide="volume-2" style="width: 16px; height: 16px;"></i>
+      <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.8" />
     </div>
   </div>
 
-  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-      <div class="tab-switcher">
-        <button class="tab-btn active" id="tabAudioBtn">Audio File</button>
-        <button class="tab-btn" id="tabSpotifyBtn">Spotify Link</button>
-      </div>
-
+      <h3 style="font-size: 1.15rem;">Add Memory Song</h3>
+      
       <div class="form-group">
-        <label>Memory / Song Title</label>
+        <label>Song / Memory Title</label>
         <input type="text" id="inputTitle" placeholder="e.g. Midnight Drive" required />
       </div>
 
@@ -416,18 +344,13 @@
       </div>
 
       <div class="form-group">
-        <label>Memory Photo</label>
-        <input type="file" id="inputFileCover" accept="image/*" required />
+        <label>Memory Photo (JPG/PNG)</label>
+        <input type="file" id="inputFileCover" accept="image/jpeg,image/png,image/webp,image/*" required />
       </div>
 
-      <div class="form-group" id="groupAudioFile">
-        <label>Audio File (.mp3, .wav, .m4a)</label>
-        <input type="file" id="inputFileAudio" accept="audio/*" />
-      </div>
-
-      <div class="form-group" id="groupSpotifyLink" style="display: none;">
-        <label>Spotify Track URL</label>
-        <input type="url" id="inputSpotify" placeholder="https://open.spotify.com/track/..." />
+      <div class="form-group">
+        <label>Audio File (MP3/M4A/WAV)</label>
+        <input type="file" id="inputFileAudio" accept="audio/mpeg,audio/mp3,audio/wav,audio/m4a,audio/x-m4a,audio/*" required />
       </div>
 
       <div class="modal-actions">
@@ -459,15 +382,13 @@
       { title: "Adore", artist: "Anrinder Gill", cover: "IMG_7044.png", audio: "Adore.mp3" }
     ];
 
-    let formattedDefaultPlaylist = defaultPlaylist.map((track, i) => ({
+    const formattedDefaultPlaylist = defaultPlaylist.map((track, i) => ({
       id: `default_${i}`,
       isDefault: true,
       title: track.title,
       artist: track.artist,
       cover_url: track.cover,
-      audio_url: track.audio,
-      source_type: "audio",
-      spotify_url: null
+      audio_url: track.audio
     }));
 
     const SUPABASE_URL = "https://uzwlwkbpqfjsrjhsxott.supabase.co";
@@ -477,7 +398,6 @@
     let playlist = [...formattedDefaultPlaylist];
     let currentIndex = 0;
     let isPlaying = false;
-    let uploadMode = "audio";
 
     const audio = document.getElementById("audioPlayer");
     const trackTitle = document.getElementById("trackTitle");
@@ -490,19 +410,11 @@
     const durationTimeEl = document.getElementById("durationTime");
     const volumeSlider = document.getElementById("volumeSlider");
 
-    const audioView = document.getElementById("audioView");
-    const spotifyView = document.getElementById("spotifyView");
-    const spotifyPlayer = document.getElementById("spotifyPlayer");
-
     const modalOverlay = document.getElementById("modalOverlay");
     const openModalBtn = document.getElementById("openModalBtn");
     const cancelModalBtn = document.getElementById("cancelModalBtn");
     const saveTrackBtn = document.getElementById("saveTrackBtn");
     const deleteTrackBtn = document.getElementById("deleteTrackBtn");
-    const tabAudioBtn = document.getElementById("tabAudioBtn");
-    const tabSpotifyBtn = document.getElementById("tabSpotifyBtn");
-    const groupAudioFile = document.getElementById("groupAudioFile");
-    const groupSpotifyLink = document.getElementById("groupSpotifyLink");
 
     function initLucide() {
       lucide.createIcons();
@@ -510,29 +422,18 @@
     initLucide();
 
     function formatTime(seconds) {
-      if (isNaN(seconds)) return "0:00";
+      if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-    }
-
-    function formatSpotifyEmbed(url) {
-      if (!url) return "";
-      const match = url.match(/track\/([a-zA-Z0-9]+)/);
-      return match ? `https://open.spotify.com/embed/track/${match[1]}?utm_source=generator&theme=0` : url;
     }
 
     function renderTrack(index, autoPlay = false) {
       if (playlist.length === 0) {
         trackTitle.textContent = "No tracks available";
         trackArtist.textContent = "";
-        coverArt.src = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500";
-        audio.pause();
-        audioView.style.display = "none";
-        spotifyView.style.display = "none";
         return;
       }
-
       if (index >= playlist.length) currentIndex = 0;
       if (index < 0) currentIndex = playlist.length - 1;
 
@@ -540,27 +441,24 @@
       trackTitle.textContent = item.title;
       trackArtist.textContent = item.artist;
       coverArt.src = item.cover_url;
+      audio.src = item.audio_url;
 
-      audio.pause();
-      isPlaying = false;
-      updatePlayBtn();
+      progressBar.value = 0;
+      currentTimeEl.textContent = "0:00";
+      durationTimeEl.textContent = "0:00";
 
-      if (item.source_type === "spotify") {
-        audioView.style.display = "none";
-        spotifyView.style.display = "flex";
-        spotifyPlayer.src = formatSpotifyEmbed(item.spotify_url);
+      if (autoPlay) {
+        audio.play().then(() => {
+          isPlaying = true;
+          updatePlayBtn();
+        }).catch(err => {
+          console.warn("Autoplay blocked by iOS browser:", err);
+          isPlaying = false;
+          updatePlayBtn();
+        });
       } else {
-        spotifyView.style.display = "none";
-        audioView.style.display = "flex";
-        spotifyPlayer.src = "";
-        audio.src = item.audio_url;
-
-        if (autoPlay) {
-          audio.play().then(() => {
-            isPlaying = true;
-            updatePlayBtn();
-          }).catch(err => console.log("Autoplay blocked:", err));
-        }
+        isPlaying = false;
+        updatePlayBtn();
       }
     }
 
@@ -573,17 +471,19 @@
     playBtn.addEventListener("click", () => {
       if (playlist.length === 0) return;
       if (audio.paused) {
-        audio.play();
-        isPlaying = true;
+        audio.play().then(() => {
+          isPlaying = true;
+          updatePlayBtn();
+        }).catch(err => console.error("Playback error:", err));
       } else {
         audio.pause();
         isPlaying = false;
+        updatePlayBtn();
       }
-      updatePlayBtn();
     });
 
     audio.addEventListener("timeupdate", () => {
-      if (!isNaN(audio.duration)) {
+      if (!isNaN(audio.duration) && audio.duration > 0) {
         progressBar.value = (audio.currentTime / audio.duration) * 100;
         currentTimeEl.textContent = formatTime(audio.currentTime);
       }
@@ -594,11 +494,12 @@
     });
 
     audio.addEventListener("ended", () => {
-      nextTrack(true);
+      currentIndex = (currentIndex + 1) % playlist.length;
+      renderTrack(currentIndex, true);
     });
 
     progressBar.addEventListener("input", () => {
-      if (!isNaN(audio.duration)) {
+      if (!isNaN(audio.duration) && audio.duration > 0) {
         audio.currentTime = (progressBar.value / 100) * audio.duration;
       }
     });
@@ -607,83 +508,37 @@
       audio.volume = e.target.value;
     });
 
-    function nextTrack(autoPlay = false) {
-      if (playlist.length === 0) return;
-      currentIndex = (currentIndex + 1) % playlist.length;
-      renderTrack(currentIndex, autoPlay);
-    }
-
-    function prevTrack() {
+    document.getElementById("prevBtn").addEventListener("click", () => {
       if (playlist.length === 0) return;
       currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-      renderTrack(currentIndex, false);
-    }
+      renderTrack(currentIndex, isPlaying);
+    });
 
-    document.getElementById("nextBtnAudio").addEventListener("click", () => nextTrack(isPlaying));
-    document.getElementById("prevBtnAudio").addEventListener("click", prevTrack);
-    document.getElementById("nextBtnSpotify").addEventListener("click", () => nextTrack(false));
-    document.getElementById("prevBtnSpotify").addEventListener("click", prevTrack);
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (playlist.length === 0) return;
+      currentIndex = (currentIndex + 1) % playlist.length;
+      renderTrack(currentIndex, isPlaying);
+    });
 
-    // Delete Track Handler
     deleteTrackBtn.addEventListener("click", async () => {
       if (playlist.length === 0) return;
 
-      const trackToDelete = playlist[currentIndex];
-      const confirmDelete = confirm(`Remove "${trackToDelete.title}"?`);
+      const track = playlist[currentIndex];
+      const confirmDelete = confirm(`Delete "${track.title}"?`);
       if (!confirmDelete) return;
 
-      if (trackToDelete.isDefault) {
-        // Remove from local array in this session
+      if (track.isDefault) {
         playlist.splice(currentIndex, 1);
-        formattedDefaultPlaylist = formattedDefaultPlaylist.filter(t => t.id !== trackToDelete.id);
-        if (currentIndex >= playlist.length) currentIndex = Math.max(0, playlist.length - 1);
         renderTrack(currentIndex, false);
         return;
       }
 
       try {
-        // 1. Delete database entry
-        const { error: dbError } = await supabaseClient
-          .from('tracks')
-          .delete()
-          .eq('id', trackToDelete.id);
-
-        if (dbError) throw dbError;
-
-        // 2. Delete storage files if it's a Supabase hosted file
-        if (trackToDelete.cover_url && trackToDelete.cover_url.includes('supabase.co')) {
-          const coverFileName = trackToDelete.cover_url.split('/').pop();
-          await supabaseClient.storage.from('song-cover').remove([coverFileName]);
-        }
-
-        if (trackToDelete.audio_url && trackToDelete.audio_url.includes('supabase.co')) {
-          const audioFileName = trackToDelete.audio_url.split('/').pop();
-          await supabaseClient.storage.from('songs').remove([audioFileName]);
-        }
-
+        await supabaseClient.from('tracks').delete().eq('id', track.id);
         await fetchTracks();
-        if (currentIndex >= playlist.length) currentIndex = Math.max(0, playlist.length - 1);
-        renderTrack(currentIndex, false);
       } catch (err) {
-        alert("Failed to delete track: " + err.message);
+        alert("Failed to delete: " + err.message);
       }
-    });
-
-    // Tab Switching
-    tabAudioBtn.addEventListener("click", () => {
-      uploadMode = "audio";
-      tabAudioBtn.classList.add("active");
-      tabSpotifyBtn.classList.remove("active");
-      groupAudioFile.style.display = "flex";
-      groupSpotifyLink.style.display = "none";
-    });
-
-    tabSpotifyBtn.addEventListener("click", () => {
-      uploadMode = "spotify";
-      tabSpotifyBtn.classList.add("active");
-      tabAudioBtn.classList.remove("active");
-      groupAudioFile.style.display = "none";
-      groupSpotifyLink.style.display = "flex";
     });
 
     openModalBtn.addEventListener("click", () => modalOverlay.style.display = "flex");
@@ -693,79 +548,57 @@
       const title = document.getElementById("inputTitle").value.trim();
       const artist = document.getElementById("inputArtist").value.trim();
       const coverFile = document.getElementById("inputFileCover").files[0];
+      const audioFile = document.getElementById("inputFileAudio").files[0];
 
-      if (!title || !artist || !coverFile) {
-        alert("Please provide a title, artist, and cover photo.");
+      if (!title || !artist || !coverFile || !audioFile) {
+        alert("Please complete all fields and choose both photo and audio files.");
         return;
       }
 
-      let audioUrl = null;
-      let spotifyUrl = null;
-
-      if (uploadMode === "audio") {
-        const audioFile = document.getElementById("inputFileAudio").files[0];
-        if (!audioFile) {
-          alert("Please select an audio file to upload.");
-          return;
-        }
-        saveTrackBtn.textContent = "Uploading...";
-        saveTrackBtn.disabled = true;
-
-        try {
-          const audioExt = audioFile.name.split('.').pop();
-          const audioPath = `song_${Date.now()}.${audioExt}`;
-          const { error: audioErr } = await supabaseClient.storage.from('songs').upload(audioPath, audioFile);
-          if (audioErr) throw audioErr;
-
-          const { data: audioUrlData } = supabaseClient.storage.from('songs').getPublicUrl(audioPath);
-          audioUrl = audioUrlData.publicUrl;
-        } catch (err) {
-          alert("Audio upload failed: " + err.message);
-          saveTrackBtn.textContent = "Upload";
-          saveTrackBtn.disabled = false;
-          return;
-        }
-      } else {
-        spotifyUrl = document.getElementById("inputSpotify").value.trim();
-        if (!spotifyUrl) {
-          alert("Please enter a valid Spotify track link.");
-          return;
-        }
-        saveTrackBtn.textContent = "Saving...";
-        saveTrackBtn.disabled = true;
-      }
+      saveTrackBtn.textContent = "Uploading...";
+      saveTrackBtn.disabled = true;
 
       try {
-        const coverExt = coverFile.name.split('.').pop();
-        const coverPath = `cover_${Date.now()}.${coverExt}`;
-        const { error: coverErr } = await supabaseClient.storage.from('song-cover').upload(coverPath, coverFile);
+        const cleanName = (name) => name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        
+        // Upload cover
+        const coverName = `${Date.now()}_${cleanName(coverFile.name)}`;
+        const { error: coverErr } = await supabaseClient.storage.from('song-cover').upload(coverName, coverFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
         if (coverErr) throw coverErr;
+        const { data: coverUrlData } = supabaseClient.storage.from('song-cover').getPublicUrl(coverName);
 
-        const { data: coverUrlData } = supabaseClient.storage.from('song-cover').getPublicUrl(coverPath);
+        // Upload audio
+        const audioName = `${Date.now()}_${cleanName(audioFile.name)}`;
+        const { error: audioErr } = await supabaseClient.storage.from('songs').upload(audioName, audioFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+        if (audioErr) throw audioErr;
+        const { data: audioUrlData } = supabaseClient.storage.from('songs').getPublicUrl(audioName);
 
-        const { error: insertErr } = await supabaseClient.from('tracks').insert([{
+        // Save row
+        const { error: dbErr } = await supabaseClient.from('tracks').insert([{
           title,
           artist,
           cover_url: coverUrlData.publicUrl,
-          source_type: uploadMode,
-          audio_url: audioUrl,
-          spotify_url: spotifyUrl
+          audio_url: audioUrlData.publicUrl
         }]);
-
-        if (insertErr) throw insertErr;
+        if (dbErr) throw dbErr;
 
         modalOverlay.style.display = "none";
         document.getElementById("inputTitle").value = "";
         document.getElementById("inputArtist").value = "";
         document.getElementById("inputFileCover").value = "";
         document.getElementById("inputFileAudio").value = "";
-        document.getElementById("inputSpotify").value = "";
 
         await fetchTracks();
         currentIndex = playlist.length - 1;
-        renderTrack(currentIndex, uploadMode === "audio");
+        renderTrack(currentIndex, true);
       } catch (err) {
-        alert("Failed to save track: " + err.message);
+        alert("Upload error: " + err.message);
       } finally {
         saveTrackBtn.textContent = "Upload";
         saveTrackBtn.disabled = false;
@@ -773,15 +606,19 @@
     });
 
     async function fetchTracks() {
-      const { data, error } = await supabaseClient
-        .from('tracks')
-        .select('*')
-        .order('id', { ascending: true });
+      try {
+        const { data, error } = await supabaseClient
+          .from('tracks')
+          .select('*')
+          .order('id', { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        const formattedSupabaseTracks = data.map(t => ({ ...t, isDefault: false }));
-        playlist = [...formattedDefaultPlaylist, ...formattedSupabaseTracks];
-      } else {
+        if (!error && data && data.length > 0) {
+          const supabaseTracks = data.map(t => ({ ...t, isDefault: false }));
+          playlist = [...formattedDefaultPlaylist, ...supabaseTracks];
+        } else {
+          playlist = [...formattedDefaultPlaylist];
+        }
+      } catch (err) {
         playlist = [...formattedDefaultPlaylist];
       }
       renderTrack(currentIndex, false);
