@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimal Music Player</title>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a, #1e1b4b, #311042);
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #a855f7;
+      --accent-hover: #c084fc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      padding: 20px;
+    }
+
+    .player-card {
+      width: 100%;
+      max-width: 380px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .top-bar span {
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      color: var(--accent);
+      transform: scale(1.1);
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Album Art */
+    .art-container {
+      width: 240px;
+      height: 240px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      margin-bottom: 24px;
+      position: relative;
+      background: #111;
+    }
+
+    .art-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .playing .art-container img {
+      transform: scale(1.05);
+    }
+
+    /* Track Details */
+    .track-info {
+      text-align: center;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .track-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .track-artist {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Sliders & Progress */
+    .progress-section {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      heig
+      ht: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+    }
+
+    .time-stamps {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 80%;
+      margin-bottom: 16px;
+    }
+
+    .play-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .play-btn:hover {
+      background: var(--accent-hover);
+      transform: scale(1.08);
+    }
+
+    /* Volume */
+    .volume-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 70%;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+
+    .modal {
+      background: #1e1b4b;
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal h3 {
+      font-size: 1.15rem;
+      margin-bottom: 6px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .form-group input {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player-card" id="playerCard">
+    <div class="top-bar">
+      <span>Now Playing</span>
+      <button class="icon-btn" id="openModalBtn" title="Add Track">
+        <i data-lucide="plus-circle"></i>
+      </button>
+    </div>
+
+    <div class="art-container">
+      <img id="coverArt" src="" alt="Album Art" />
+    </div>
+
+    <div class="track-info">
+      <div class="track-title" id="trackTitle">Loading...</div>
+      <div class="track-artist" id="trackArtist">...</div>
+    </div>
+
+    <div class="progress-section">
+      <input type="range" class="slider" id="progressSlider" value="0" min="0" max="100" />
+      <div class="time-stamps">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="icon-btn" id="prevBtn">
+        <i data-lucide="skip-back"></i>
+      </button>
+      <button class="play-btn" id="playBtn">
+        <i data-lucide="play" id="playIcon"></i>
+      </button>
+      <button class="icon-btn" id="nextBtn">
+        <i data-lucide="skip-forward"></i>
+      </button>
+    </div>
+
+    <div class="volume-container">
+      <i data-lucide="volume-2" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+      <input type="range" class="slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.8" />
+    </div>
+  </div>
+
+  <!-- Add Track Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>Add New Track</h3>
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="inputTitle" placeholder="Track Name" />
+      </div>
+      <div class="form-group">
+        <label>Artist</label>
+        <input type="text" id="inputArtist" placeholder="Artist Name" />
+      </div>
+      <div class="form-group">
+        <label>Audio File or Stream URL</label>
+        <input type="file" id="inputFileAudio" accept="audio/*" />
+        <input type="url" id="inputUrlAudio" placeholder="or direct .mp3 URL" style="margin-top: 4px;" />
+      </div>
+      <div class="form-group">
+        <label>Cover Photo</label>
+        <input type="file" id="inputFileCover" accept="image/*" />
+        <input type="url" id="inputUrlCover" placeholder="or image URL" style="margin-top: 4px;" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveTrackBtn">Save Track</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audioElement"></audio>
+
+  <script>
+    // Lucide Icons initialization
+    lucide.createIcons();
+
+    // Default Playlist
+    const defaultPlaylist = [
+      {
+        title: "Iko Rang",
+        artist: "Bir Singh",
+        cover: "photo2.jpeg",
+        audio: "ikkorang.mp3"
+      },
+      {
+        title: "First Love",
+        artist: "Garry Sandhu",
+        cover: "photo1.jpeg",
+        audio: "fl.mp3"
+      },
+      {
+        title: "He is Mine",
+        artist: "Arjan",
+        cover: "photo13.jpeg",
+        audio: "mine.mp3"
+      },
+      {
+        title: "Do Gallan",
+        artist: "Garry Sandhu",
+        cover: "photo17.jpeg",
+        audio: "dg.mp3"
+      },
+      {
+        title: "Reshmi Road",
+        artist: "Hustinder",
+        cover: "photo15.jpeg",
+        audio: "rr.mp3"
+      },
+      {
+        title: "Coffee",
+        artist: "Amrinder Gill",
+        cover: "photo16.jpeg",
+        audio: "coffee.mp3"
+      },
+      {
+        title: "7 Lives",
+        artist: "Tarsem Jassar",
+        cover: "photo14.jpeg",
+        audio: "7lives.mp3"
+      },
+      {
+        title: "Taaz",
+        artist: "Navan Sandhu",
+        cover: "photo18.jpeg",
+        audio: "taaz.mp3"
+      },
+      {
+        title: "US",
+        artist: "SMW",
+        cover: "photo3.jpeg",
+        audio: "us.mp3"
+      },
+      {
+        title: "Karan Aujla",
+        artist: "Admiring You",
+        cover: "photo9.jpeg",
+        audio: "au.mp3"
+      },
+      {
+        title: "Udeekan Vich",
+        artist: "Arman Bedil",
+        cover: "photo20.jpg",
+        audio: "UdV.mp3"
+      },
+      {
+        title: "Teri ho gayee haan",
+        artist: "Milind Gaba",
+        cover: "IMG_7022.jpeg",
+        audio: "Main Teri Ho Gayi Millind Gaba 320 Kbps.mp3"
+      },
+      {
+        title: "Hear Me calling",
+        artist: "Gill boiz",
+        cover: "IMG_7004.png",
+        audio: "HEAR ME CALLING(KoshalWorld.Com).mp3"
+      },
+      {
+        title: "WRITTEN BEAUTIFULLY",
+        artist: "Jordan Sandhu",
+        cover: "IMG_7032.jpeg",
+        audio: "Written Beautifully - Jordan Sandhu (Mr-Punjab.Com).mp3"
+      },
+      {
+        title: "Khadoos",
+        artist: "Jassar",
+        cover: "eb1c9e1a-90f9-4ed9-8c96-2a7876f3739b.jpeg",
+        audio: "Khadoos.mp3"
+      },
+     {
+        title: "Pariyan",
+        artist: "Landers",
+        cover: "IMG_7041.png",
+        audio: "Pariyan - The Landers.mp3"
+      },
+      {
+        title: "Wallpaper",
+        artist: "Navjeet",
+        cover: "IMG_7031.png",
+        audio: "Navjeet_-_Wallpaper_(mp3.pm).mp3"
+      },
+      {
+        title: "Adore",
+        artist: "Anrinder Gill",
+        cover: "IMG_7044.png",
+        audio: "Adore.mp3"
+      }
+    ];
+
+    // State
+    let playlist = JSON.parse(localStorage.getItem("custom_tracks")) || defaultPlaylist;
+    let currentIndex = 0;
+    let isPlaying = false;
+
+    // Elements
+    const audio = document.getElementById("audioElement");
+    const playBtn = document.getElementById("playBtn");
+    const playIcon = document.getElementById("playIcon");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const trackTitle = document.getElementById("trackTitle");
+    const trackArtist = document.getElementById("trackArtist");
+    const coverArt = document.getElementById("coverArt");
+    const progressSlider = document.getElementById("progressSlider");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const currentTimeEl = document.getElementById("currentTime");
+    const durationEl = document.getElementById("duration");
+    const playerCard = document.getElementById("playerCard");
+
+    // Modal Elements
+    const openModalBtn = document.getElementById("openModalBtn");
+    const cancelModalBtn = document.getElementById("cancelModalBtn");
+    const saveTrackBtn = document.getElementById("saveTrackBtn");
+    const modalOverlay = document.getElementById("modalOverlay");
+
+    function loadTrack(index) {
+      const track = playlist[index];
+      trackTitle.textContent = track.title;
+      trackArtist.textContent = track.artist;
+      coverArt.src = track.cover;
+      audio.src = track.audio;
+      progressSlider.value = 0;
+      currentTimeEl.textContent = "0:00";
+    }
+
+    function togglePlay() {
+      if (isPlaying) {
+        audio.pause();
+        playerCard.classList.remove("playing");
+        playBtn.innerHTML = '<i data-lucide="play"></i>';
+      } else {
+        audio.play().catch(e => console.log("Audio play error:", e));
+        playerCard.classList.add("playing");
+        playBtn.innerHTML = '<i data-lucide="pause"></i>';
+      }
+      isPlaying = !isPlaying;
+      lucide.createIcons();
+    }
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "0:00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+    }
+
+    // Audio Event Handlers
+    audio.addEventListener("timeupdate", () => {
+      if (audio.duration) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressSlider.value = progress;
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+        durationEl.textContent = formatTime(audio.duration);
+      }
+    });
+
+    audio.addEventListener("ended", () => {
+      nextTrack();
+    });
+
+    progressSlider.addEventListener("input", () => {
+      if (audio.duration) {
+        audio.currentTime = (progressSlider.value / 100) * audio.duration;
+      }
+    });
+
+    volumeSlider.addEventListener("input", (e) => {
+      audio.volume = e.target.value;
+    });
+
+    function prevTrack() {
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      loadTrack(currentIndex);
+      if (isPlaying) audio.play();
+    }
+
+    function nextTrack() {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      loadTrack(currentIndex);
+      if (isPlaying) audio.play();
+    }
+
+    // Event Listeners
+    playBtn.addEventListener("click", togglePlay);
+    prevBtn.addEventListener("click", prevTrack);
+    nextBtn.addEventListener("click", nextTrack);
+
+    // Modal Control
+    openModalBtn.addEventListener("click", () => modalOverlay.style.display = "flex");
+    cancelModalBtn.addEventListener("click", () => modalOverlay.style.display = "none");
+
+    // Add Track Logic (URL or File Upload)
+    saveTrackBtn.addEventListener("click", async () => {
+      const title = document.getElementById("inputTitle").value.trim() || "Untitled Track";
+      const artist = document.getElementById("inputArtist").value.trim() || "Unknown Artist";
+      const urlAudio = document.getElementById("inputUrlAudio").value.trim();
+      const urlCover = document.getElementById("inputUrlCover").value.trim();
+      const fileAudio = document.getElementById("inputFileAudio").files[0];
+      const fileCover = document.getElementById("inputFileCover").files[0];
+
+      let audioSrc = urlAudio;
+      let coverSrc = urlCover || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=60";
+
+      // Convert uploaded files to Blob Object URLs for current session
+      if (fileAudio) {
+        audioSrc = URL.createObjectURL(fileAudio);
+      }
+      if (fileCover) {
+        coverSrc = URL.createObjectURL(fileCover);
+      }
+
+      if (!audioSrc) {
+        alert("Please provide an audio file or direct URL.");
+        return;
+      }
+
+      const newTrack = { title, artist, cover: coverSrc, audio: audioSrc };
+      playlist.push(newTrack);
+
+      // Save URL-based items to LocalStorage (blobs cannot be persisted as standard strings)
+      if (!fileAudio && !fileCover) {
+        localStorage.setItem("custom_tracks", JSON.stringify(playlist));
+      }
+
+      modalOverlay.style.display = "none";
+      currentIndex = playlist.length - 1;
+      loadTrack(currentIndex);
+      if (isPlaying) audio.play();
+
+      // Reset Form
+      document.getElementById("inputTitle").value = "";
+      document.getElementById("inputArtist").value = "";
+      document.getElementById("inputUrlAudio").value = "";
+      document.getElementById("inputUrlCover").value = "";
+      document.getElementById("inputFileAudio").value = "";
+      document.getElementById("inputFileCover").value = "";
+    });
+
+    // Initial Load
+    loadTrack(currentIndex);
+  </script>
+</body>
+</html>
