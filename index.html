@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SaHar Melodies</title>
+  <title>SaHar Melodies ♪♡</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
@@ -41,6 +42,7 @@
     .player-card {
       width: 100%;
       max-width: 380px;
+      height: 580px;
       background: var(--card-bg);
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
@@ -52,6 +54,7 @@
       flex-direction: column;
       align-items: center;
       position: relative;
+      overflow: hidden;
     }
 
     .top-bar {
@@ -59,7 +62,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
+      z-index: 5;
     }
 
     .top-bar span {
@@ -73,7 +77,7 @@
     .top-bar-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .icon-btn {
@@ -84,22 +88,37 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.15s ease, opacity 0.15s ease;
+      transition: transform 0.15s ease, opacity 0.15s ease, color 0.15s ease;
     }
 
     .icon-btn:active {
       transform: scale(0.92);
     }
 
+    .icon-btn.active {
+      color: var(--accent);
+    }
+
+    /* Track View Container */
+    .player-view {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      justify-content: space-between;
+    }
+
     .art-container {
-      width: 250px;
-      height: 250px;
-      border-radius: 22px;
+      width: 230px;
+      height: 230px;
+      border-radius: 20px;
       overflow: hidden;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-      margin-bottom: 20px;
+      margin: 8px 0 14px 0;
       background: #111;
       border: 1px solid var(--card-border);
+      flex-shrink: 0;
     }
 
     .art-container img {
@@ -111,11 +130,11 @@
     .track-info {
       text-align: center;
       width: 100%;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
 
     .track-title {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
@@ -124,7 +143,7 @@
     }
 
     .track-artist {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       white-space: nowrap;
       overflow: hidden;
@@ -153,7 +172,7 @@
 
     .progress-section {
       width: 100%;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
 
     .progress-slider {
@@ -175,11 +194,12 @@
       justify-content: center;
       gap: 32px;
       width: 100%;
+      margin-bottom: 6px;
     }
 
     .play-btn {
-      width: 64px;
-      height: 64px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background: var(--accent);
       color: #fff;
@@ -194,6 +214,88 @@
 
     .play-btn:active {
       transform: scale(0.92);
+    }
+
+    /* Playlist Drawer / View */
+    .playlist-drawer {
+      position: absolute;
+      top: 64px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 13, 30, 0.95);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-top: 1px solid var(--card-border);
+      border-radius: 0 0 32px 32px;
+      padding: 16px 20px;
+      display: none;
+      flex-direction: column;
+      z-index: 10;
+      overflow-y: auto;
+    }
+
+    .playlist-drawer.open {
+      display: flex;
+    }
+
+    .playlist-drawer::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .playlist-drawer::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .playlist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      margin-bottom: 6px;
+    }
+
+    .playlist-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .playlist-item.active {
+      background: rgba(168, 85, 247, 0.18);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .playlist-item-img {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #111;
+      flex-shrink: 0;
+    }
+
+    .playlist-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .playlist-item-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .playlist-item-artist {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Hidden YT Player */
@@ -314,6 +416,9 @@
     <div class="top-bar">
       <span>Our Memories</span>
       <div class="top-bar-actions">
+        <button class="icon-btn" id="playlistToggleBtn" title="View Playlist">
+          <i data-lucide="list-music" style="width: 20px; height: 20px;"></i>
+        </button>
         <button class="icon-btn" id="deleteTrackBtn" title="Remove Track">
           <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
         </button>
@@ -323,33 +428,44 @@
       </div>
     </div>
 
-    <div class="art-container">
-      <img id="coverArt" src="" alt="Memory Photo" loading="lazy" />
-    </div>
+    <!-- Main View -->
+    <div class="player-view">
+      <div class="art-container">
+        <img id="coverArt" src="" alt="Memory Photo" loading="lazy" />
+      </div>
 
-    <div class="track-info">
-      <div class="track-title" id="trackTitle">Loading playlist...</div>
-      <div class="track-artist" id="trackArtist">...</div>
-    </div>
+      <div class="track-info">
+        <div class="track-title" id="trackTitle">Loading playlist...</div>
+        <div class="track-artist" id="trackArtist">...</div>
+      </div>
 
-    <audio id="audioPlayer" preload="metadata" playsinline webkit-playsinline></audio>
-    <div id="ytPlayerContainer"><div id="ytPlayer"></div></div>
+      <div class="progress-section">
+        <input type="range" id="progressBar" class="progress-slider" value="0" min="0" max="100" />
+        <div class="time-stamps">
+          <span id="currentTime">0:00</span>
+          <span id="durationTime">0:00</span>
+        </div>
+      </div>
 
-    <div class="progress-section">
-      <input type="range" id="progressBar" class="progress-slider" value="0" min="0" max="100" />
-      <div class="time-stamps">
-        <span id="currentTime">0:00</span>
-        <span id="durationTime">0:00</span>
+      <div class="controls">
+        <button class="icon-btn" id="prevBtn"><i data-lucide="skip-back" style="width: 28px; height: 28px;"></i></button>
+        <button class="play-btn" id="playBtn"><i data-lucide="play" id="playIcon" style="width: 26px; height: 26px; margin-left: 2px;"></i></button>
+        <button class="icon-btn" id="nextBtn"><i data-lucide="skip-forward" style="width: 28px; height: 28px;"></i></button>
       </div>
     </div>
 
-    <div class="controls">
-      <button class="icon-btn" id="prevBtn"><i data-lucide="skip-back" style="width: 28px; height: 28px;"></i></button>
-      <button class="play-btn" id="playBtn"><i data-lucide="play" id="playIcon" style="width: 26px; height: 26px; margin-left: 2px;"></i></button>
-      <button class="icon-btn" id="nextBtn"><i data-lucide="skip-forward" style="width: 28px; height: 28px;"></i></button>
+    <!-- Playlist Drawer -->
+    <div class="playlist-drawer" id="playlistDrawer">
+      <!-- Tracks dynamically injected here -->
     </div>
+
+    <!-- Hidden Native Audio -->
+    <audio id="audioPlayer" preload="metadata" playsinline webkit-playsinline></audio>
+    <!-- Hidden YouTube Player Container -->
+    <div id="ytPlayerContainer"><div id="ytPlayer"></div></div>
   </div>
 
+  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="tab-switcher">
@@ -428,7 +544,7 @@
     let playlist = [...formattedDefaultPlaylist];
     let currentIndex = 0;
     let isPlaying = false;
-    let uploadMode = "youtube"; // 'youtube' | 'audio'
+    let uploadMode = "youtube";
     let ytPlayer = null;
     let ytInterval = null;
 
@@ -452,6 +568,9 @@
     const groupYtLink = document.getElementById("groupYtLink");
     const groupAudioFile = document.getElementById("groupAudioFile");
 
+    const playlistDrawer = document.getElementById("playlistDrawer");
+    const playlistToggleBtn = document.getElementById("playlistToggleBtn");
+
     function initLucide() {
       lucide.createIcons();
     }
@@ -468,6 +587,44 @@
       const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
       return match ? match[1] : null;
     }
+
+    // Render playlist drawer items
+    function renderPlaylistDrawer() {
+      playlistDrawer.innerHTML = "";
+      playlist.forEach((track, index) => {
+        const item = document.createElement("div");
+        item.className = `playlist-item ${index === currentIndex ? "active" : ""}`;
+        item.innerHTML = `
+          <img src="${track.cover_url}" class="playlist-item-img" onerror="this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100'" />
+          <div class="playlist-item-info">
+            <div class="playlist-item-title">${track.title}</div>
+            <div class="playlist-item-artist">${track.artist}</div>
+          </div>
+          ${index === currentIndex && isPlaying ? '<i data-lucide="volume-2" style="width: 16px; height: 16px; color: var(--accent);"></i>' : ''}
+        `;
+        item.addEventListener("click", () => {
+          currentIndex = index;
+          renderTrack(currentIndex, true);
+          playlistDrawer.classList.remove("open");
+          playlistToggleBtn.classList.remove("active");
+        });
+        playlistDrawer.appendChild(item);
+      });
+      initLucide();
+    }
+
+    // Toggle playlist drawer
+    playlistToggleBtn.addEventListener("click", () => {
+      const isOpen = playlistDrawer.classList.toggle("open");
+      playlistToggleBtn.classList.toggle("active", isOpen);
+      if (isOpen) {
+        renderPlaylistDrawer();
+        const activeItem = playlistDrawer.querySelector(".playlist-item.active");
+        if (activeItem) {
+          activeItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+      }
+    });
 
     // YouTube API Ready
     window.onYouTubeIframeAPIReady = function () {
@@ -524,7 +681,6 @@
       trackArtist.textContent = item.artist;
       coverArt.src = item.cover_url;
 
-      // Reset state
       audio.pause();
       if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
       clearInterval(ytInterval);
@@ -550,6 +706,10 @@
             updatePlayBtn();
           }).catch(err => console.log("Autoplay blocked:", err));
         }
+      }
+
+      if (playlistDrawer.classList.contains("open")) {
+        renderPlaylistDrawer();
       }
     }
 
@@ -628,7 +788,6 @@
     document.getElementById("prevBtn").addEventListener("click", prevTrack);
     document.getElementById("nextBtn").addEventListener("click", () => nextTrack(isPlaying));
 
-    // Tab Switches
     tabYtBtn.addEventListener("click", () => {
       uploadMode = "youtube";
       tabYtBtn.classList.add("active");
@@ -648,7 +807,6 @@
     openModalBtn.addEventListener("click", () => modalOverlay.style.display = "flex");
     cancelModalBtn.addEventListener("click", () => modalOverlay.style.display = "none");
 
-    // Upload & Save Logic
     saveTrackBtn.addEventListener("click", async () => {
       const title = document.getElementById("inputTitle").value.trim();
       const artist = document.getElementById("inputArtist").value.trim();
@@ -672,7 +830,6 @@
           ytId = extractYtId(ytUrl);
           if (!ytId) throw new Error("Invalid YouTube link");
 
-          // Default to high-res YouTube thumbnail if no cover was provided
           coverUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
         } else {
           const audioFile = document.getElementById("inputFileAudio").files[0];
@@ -686,7 +843,6 @@
           audioUrl = audioUrlData.publicUrl;
         }
 
-        // Upload custom cover if user provided one
         if (coverFile) {
           const coverPath = `${Date.now()}_${coverFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
           const { error: coverErr } = await supabaseClient.storage.from('song-cover').upload(coverPath, coverFile);
@@ -696,7 +852,6 @@
           coverUrl = coverUrlData.publicUrl;
         }
 
-        // Insert into Supabase
         const { error: dbErr } = await supabaseClient.from('tracks').insert([{
           title,
           artist,
@@ -726,7 +881,6 @@
       }
     });
 
-    // Delete Logic
     deleteTrackBtn.addEventListener("click", async () => {
       if (playlist.length === 0) return;
       const track = playlist[currentIndex];
