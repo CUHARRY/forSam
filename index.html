@@ -3,28 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Our Memory Player</title>
+  <title>SaHar Melodies ♪♡</title>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #09090e, #131127, #240d34);
-      --card-bg: rgba(255, 255, 255, 0.06);
-      --card-border: rgba(255, 255, 255, 0.12);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #a855f7;
-      --accent-glow: rgba(168, 85, 247, 0.4);
-      --danger: #ef4444;
+      /* Romantic Floral & Pastel Palette */
+      --bg-gradient: linear-gradient(135deg, #ffd1dc, #fbcfe8, #e9d5ff, #fed7aa);
+      --card-bg: rgba(255, 255, 255, 0.45);
+      --card-border: rgba(255, 255, 255, 0.65);
+      --text-main: #3b0764;          /* Deep Romantic Plum */
+      --text-muted: #865d89;         /* Soft Mauve */
+      --accent: #f43f5e;             /* Rose Blossom */
+      --accent-soft: #fbcfe8;        /* Soft Blush Pink */
+      --accent-glow: rgba(244, 63, 94, 0.3);
+      --danger: #e11d48;
+      --drawer-bg: rgba(255, 245, 247, 0.96);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -34,21 +40,29 @@
       align-items: center;
       justify-content: center;
       background: var(--bg-gradient);
+      background-size: 200% 200%;
+      animation: gentleShift 14s ease infinite alternate;
       color: var(--text-main);
       padding: 16px;
+    }
+
+    @keyframes gentleShift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
     }
 
     .player-card {
       width: 100%;
       max-width: 380px;
-      height: 580px;
+      height: 590px;
       background: var(--card-bg);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border: 1px solid var(--card-border);
-      border-radius: 32px;
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid var(--card-border);
+      border-radius: 36px;
       padding: 24px;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 20px 45px rgba(186, 114, 150, 0.25), 
+                  0 8px 16px rgba(255, 255, 255, 0.6) inset;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -67,10 +81,10 @@
 
     .top-bar span {
       font-size: 0.8rem;
-      letter-spacing: 1.5px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       color: var(--text-muted);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .top-bar-actions {
@@ -87,7 +101,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.15s ease, opacity 0.15s ease, color 0.15s ease;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      color: var(--accent);
     }
 
     .icon-btn:active {
@@ -98,7 +116,6 @@
       color: var(--accent);
     }
 
-    /* Track View Container */
     .player-view {
       width: 100%;
       display: flex;
@@ -111,12 +128,12 @@
     .art-container {
       width: 230px;
       height: 230px;
-      border-radius: 20px;
+      border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-      margin: 8px 0 14px 0;
-      background: #111;
-      border: 1px solid var(--card-border);
+      box-shadow: 0 16px 30px rgba(186, 114, 150, 0.25);
+      margin: 6px 0 14px 0;
+      background: #fdf2f8;
+      border: 2px solid rgba(255, 255, 255, 0.8);
       flex-shrink: 0;
     }
 
@@ -133,17 +150,19 @@
     }
 
     .track-title {
-      font-size: 1.2rem;
-      font-weight: 700;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .track-artist {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
+      font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -152,7 +171,7 @@
     input[type="range"] {
       -webkit-appearance: none;
       appearance: none;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(186, 114, 150, 0.18);
       border-radius: 999px;
       outline: none;
       cursor: pointer;
@@ -164,8 +183,8 @@
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
       cursor: pointer;
     }
 
@@ -184,6 +203,7 @@
       justify-content: space-between;
       font-size: 0.75rem;
       color: var(--text-muted);
+      font-weight: 600;
       margin-top: 6px;
     }
 
@@ -197,36 +217,35 @@
     }
 
     .play-btn {
-      width: 60px;
-      height: 60px;
+      width: 62px;
+      height: 62px;
       border-radius: 50%;
-      background: var(--accent);
+      background: linear-gradient(135deg, #fb7185, #f43f5e);
       color: #fff;
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 24px var(--accent-glow);
-      transition: transform 0.15s ease;
+      box-shadow: 0 10px 22px var(--accent-glow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .play-btn:active {
       transform: scale(0.92);
     }
 
-    /* Playlist Drawer / View */
     .playlist-drawer {
       position: absolute;
       top: 64px;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(15, 13, 30, 0.95);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      border-top: 1px solid var(--card-border);
-      border-radius: 0 0 32px 32px;
+      background: var(--drawer-bg);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-top: 1.5px solid var(--card-border);
+      border-radius: 0 0 36px 36px;
       padding: 16px 20px;
       display: none;
       flex-direction: column;
@@ -243,7 +262,7 @@
     }
 
     .playlist-drawer::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(186, 114, 150, 0.25);
       border-radius: 4px;
     }
 
@@ -252,27 +271,27 @@
       align-items: center;
       gap: 12px;
       padding: 10px;
-      border-radius: 12px;
+      border-radius: 14px;
       cursor: pointer;
       transition: background 0.15s ease;
       margin-bottom: 6px;
     }
 
     .playlist-item:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(244, 63, 94, 0.08);
     }
 
     .playlist-item.active {
-      background: rgba(168, 85, 247, 0.18);
-      border: 1px solid rgba(168, 85, 247, 0.4);
+      background: rgba(244, 63, 94, 0.14);
+      border: 1px solid rgba(244, 63, 94, 0.3);
     }
 
     .playlist-item-img {
       width: 42px;
       height: 42px;
-      border-radius: 8px;
+      border-radius: 10px;
       object-fit: cover;
-      background: #111;
+      background: #fbcfe8;
       flex-shrink: 0;
     }
 
@@ -283,7 +302,8 @@
 
     .playlist-item-title {
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 700;
+      color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -297,7 +317,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Hidden YT Player */
     #ytPlayerContainer {
       position: absolute;
       top: -9999px;
@@ -308,12 +327,11 @@
       pointer-events: none;
     }
 
-    /* Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.82);
-      backdrop-filter: blur(8px);
+      background: rgba(59, 7, 100, 0.45);
+      backdrop-filter: blur(10px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -322,21 +340,22 @@
     }
 
     .modal {
-      background: #16122e;
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
+      background: #fff0f3;
+      border: 1.5px solid rgba(255, 255, 255, 0.8);
+      border-radius: 28px;
       width: 100%;
       max-width: 360px;
       padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      box-shadow: 0 20px 40px rgba(186, 114, 150, 0.3);
     }
 
     .tab-switcher {
       display: flex;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
+      background: rgba(186, 114, 150, 0.12);
+      border-radius: 12px;
       padding: 4px;
       gap: 4px;
     }
@@ -347,8 +366,8 @@
       border: none;
       background: transparent;
       color: var(--text-muted);
-      border-radius: 8px;
-      font-weight: 600;
+      border-radius: 9px;
+      font-weight: 700;
       cursor: pointer;
       font-size: 0.85rem;
     }
@@ -367,14 +386,15 @@
     .form-group label {
       font-size: 0.8rem;
       color: var(--text-muted);
+      font-weight: 600;
     }
 
     .form-group input {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
+      background: #ffffff;
+      border: 1.5px solid rgba(186, 114, 150, 0.2);
+      border-radius: 12px;
       padding: 10px 12px;
-      color: #fff;
+      color: var(--text-main);
       font-size: 0.9rem;
       outline: none;
     }
@@ -392,19 +412,20 @@
     .btn {
       flex: 1;
       padding: 12px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: none;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
     }
 
     .btn-primary {
-      background: var(--accent);
+      background: linear-gradient(135deg, #fb7185, #f43f5e);
       color: #fff;
+      box-shadow: 0 4px 12px var(--accent-glow);
     }
 
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(186, 114, 150, 0.12);
       color: var(--text-main);
     }
   </style>
@@ -452,13 +473,13 @@
       </div>
     </div>
 
-    <div class="playlist-drawer" id="playlistDrawer">
-      </div>
+    <div class="playlist-drawer" id="playlistDrawer"></div>
 
     <audio id="audioPlayer" preload="metadata" playsinline webkit-playsinline></audio>
     <div id="ytPlayerContainer"><div id="ytPlayer"></div></div>
   </div>
 
+  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="tab-switcher">
@@ -478,7 +499,7 @@
 
       <div class="form-group">
         <label>Memory Photo (Optional for YouTube)</label>
-        <input type="file" id="inputFileCover" accept="image/*" />
+        <input type="file" id="inputFileCover" accept="image/*,.jpg,.jpeg,.png,.webp,.heic" />
       </div>
 
       <div class="form-group" id="groupYtLink">
@@ -487,8 +508,8 @@
       </div>
 
       <div class="form-group" id="groupAudioFile" style="display: none;">
-        <label>Audio File (.mp3, .m4a)</label>
-        <input type="file" id="inputFileAudio" accept="audio/*" />
+        <label>Audio File (.mp3, .m4a, .wav)</label>
+        <input type="file" id="inputFileAudio" accept=".mp3,.m4a,.wav,.aac,.flac,audio/mpeg,audio/mp3,audio/x-m4a,audio/m4a,audio/wav,audio/*" />
       </div>
 
       <div class="modal-actions">
@@ -797,7 +818,6 @@
     openModalBtn.addEventListener("click", () => modalOverlay.style.display = "flex");
     cancelModalBtn.addEventListener("click", () => modalOverlay.style.display = "none");
 
-    // Robust Mobile File Handler
     saveTrackBtn.addEventListener("click", async () => {
       const title = document.getElementById("inputTitle").value.trim();
       const artist = document.getElementById("inputArtist").value.trim();
@@ -833,7 +853,6 @@
 
           saveTrackBtn.textContent = "Uploading Audio...";
           
-          // Use explicit blob upload for Safari iOS compatibility
           const audioBlob = new Blob([audioFile], { type: audioFile.type || 'audio/mpeg' });
           const { error: audioErr } = await supabaseClient.storage
             .from('songs')
@@ -848,7 +867,6 @@
           audioUrl = audioUrlData.publicUrl;
         }
 
-        // Handle Optional/Custom Photo
         if (coverInput.files && coverInput.files.length > 0) {
           saveTrackBtn.textContent = "Uploading Cover...";
           const coverFile = coverInput.files[0];
