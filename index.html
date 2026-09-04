@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SaHar Melodies ♪♡</title>
+  <title>Our Memory Player</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
@@ -414,7 +413,7 @@
 
   <div class="player-card">
     <div class="top-bar">
-      <span>Our Memories</span>
+      <span>SaHar Melodies ♪♡</span>
       <div class="top-bar-actions">
         <button class="icon-btn" id="playlistToggleBtn" title="View Playlist">
           <i data-lucide="list-music" style="width: 20px; height: 20px;"></i>
@@ -428,7 +427,6 @@
       </div>
     </div>
 
-    <!-- Main View -->
     <div class="player-view">
       <div class="art-container">
         <img id="coverArt" src="" alt="Memory Photo" loading="lazy" />
@@ -454,18 +452,13 @@
       </div>
     </div>
 
-    <!-- Playlist Drawer -->
     <div class="playlist-drawer" id="playlistDrawer">
-      <!-- Tracks dynamically injected here -->
-    </div>
+      </div>
 
-    <!-- Hidden Native Audio -->
     <audio id="audioPlayer" preload="metadata" playsinline webkit-playsinline></audio>
-    <!-- Hidden YouTube Player Container -->
     <div id="ytPlayerContainer"><div id="ytPlayer"></div></div>
   </div>
 
-  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="tab-switcher">
@@ -588,7 +581,6 @@
       return match ? match[1] : null;
     }
 
-    // Render playlist drawer items
     function renderPlaylistDrawer() {
       playlistDrawer.innerHTML = "";
       playlist.forEach((track, index) => {
@@ -613,7 +605,6 @@
       initLucide();
     }
 
-    // Toggle playlist drawer
     playlistToggleBtn.addEventListener("click", () => {
       const isOpen = playlistDrawer.classList.toggle("open");
       playlistToggleBtn.classList.toggle("active", isOpen);
@@ -626,7 +617,6 @@
       }
     });
 
-    // YouTube API Ready
     window.onYouTubeIframeAPIReady = function () {
       ytPlayer = new YT.Player('ytPlayer', {
         height: '100',
@@ -704,7 +694,7 @@
           audio.play().then(() => {
             isPlaying = true;
             updatePlayBtn();
-          }).catch(err => console.log("Autoplay blocked:", err));
+          }).catch(err => console.log("Autoplay policy:", err));
         }
       }
 
@@ -782,7 +772,7 @@
     function prevTrack() {
       if (playlist.length === 0) return;
       currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-      renderTrack(currentIndex, isPlaying);
+      renderTrack(currentIndex, false);
     }
 
     document.getElementById("prevBtn").addEventListener("click", prevTrack);
@@ -807,13 +797,15 @@
     openModalBtn.addEventListener("click", () => modalOverlay.style.display = "flex");
     cancelModalBtn.addEventListener("click", () => modalOverlay.style.display = "none");
 
+    // Robust Mobile File Handler
     saveTrackBtn.addEventListener("click", async () => {
       const title = document.getElementById("inputTitle").value.trim();
       const artist = document.getElementById("inputArtist").value.trim();
-      const coverFile = document.getElementById("inputFileCover").files[0];
+      const coverInput = document.getElementById("inputFileCover");
+      const audioInput = document.getElementById("inputFileAudio");
 
       if (!title || !artist) {
-        alert("Please enter a title and artist.");
+        alert("Please enter both title and artist.");
         return;
       }
 
@@ -821,7 +813,7 @@
       let audioUrl = null;
       let ytId = null;
 
-      saveTrackBtn.textContent = "Saving...";
+      saveTrackBtn.textContent = "Processing...";
       saveTrackBtn.disabled = true;
 
       try {
@@ -829,28 +821,55 @@
           const ytUrl = document.getElementById("inputYtUrl").value.trim();
           ytId = extractYtId(ytUrl);
           if (!ytId) throw new Error("Invalid YouTube link");
-
           coverUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
         } else {
-          const audioFile = document.getElementById("inputFileAudio").files[0];
-          if (!audioFile) throw new Error("Please select an audio file");
+          if (!audioInput.files || audioInput.files.length === 0) {
+            throw new Error("Please select an audio file from your device.");
+          }
+          
+          const audioFile = audioInput.files[0];
+          const ext = audioFile.name.split('.').pop() || 'mp3';
+          const audioPath = `song_${Date.now()}.${ext}`;
 
-          const audioPath = `${Date.now()}_${audioFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-          const { error: audioErr } = await supabaseClient.storage.from('songs').upload(audioPath, audioFile);
+          saveTrackBtn.textContent = "Uploading Audio...";
+          
+          // Use explicit blob upload for Safari iOS compatibility
+          const audioBlob = new Blob([audioFile], { type: audioFile.type || 'audio/mpeg' });
+          const { error: audioErr } = await supabaseClient.storage
+            .from('songs')
+            .upload(audioPath, audioBlob, {
+              contentType: audioFile.type || 'audio/mpeg',
+              upsert: true
+            });
+
           if (audioErr) throw audioErr;
 
           const { data: audioUrlData } = supabaseClient.storage.from('songs').getPublicUrl(audioPath);
           audioUrl = audioUrlData.publicUrl;
         }
 
-        if (coverFile) {
-          const coverPath = `${Date.now()}_${coverFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-          const { error: coverErr } = await supabaseClient.storage.from('song-cover').upload(coverPath, coverFile);
+        // Handle Optional/Custom Photo
+        if (coverInput.files && coverInput.files.length > 0) {
+          saveTrackBtn.textContent = "Uploading Cover...";
+          const coverFile = coverInput.files[0];
+          const cExt = coverFile.name.split('.').pop() || 'jpg';
+          const coverPath = `cover_${Date.now()}.${cExt}`;
+
+          const coverBlob = new Blob([coverFile], { type: coverFile.type || 'image/jpeg' });
+          const { error: coverErr } = await supabaseClient.storage
+            .from('song-cover')
+            .upload(coverPath, coverBlob, {
+              contentType: coverFile.type || 'image/jpeg',
+              upsert: true
+            });
+
           if (coverErr) throw coverErr;
 
           const { data: coverUrlData } = supabaseClient.storage.from('song-cover').getPublicUrl(coverPath);
           coverUrl = coverUrlData.publicUrl;
         }
+
+        saveTrackBtn.textContent = "Saving...";
 
         const { error: dbErr } = await supabaseClient.from('tracks').insert([{
           title,
@@ -867,14 +886,14 @@
         document.getElementById("inputTitle").value = "";
         document.getElementById("inputArtist").value = "";
         document.getElementById("inputYtUrl").value = "";
-        document.getElementById("inputFileAudio").value = "";
-        document.getElementById("inputFileCover").value = "";
+        coverInput.value = "";
+        audioInput.value = "";
 
         await fetchTracks();
         currentIndex = playlist.length - 1;
         renderTrack(currentIndex, true);
       } catch (err) {
-        alert("Save failed: " + err.message);
+        alert("Upload Failed: " + (err.message || err.error_description || JSON.stringify(err)));
       } finally {
         saveTrackBtn.textContent = "Upload";
         saveTrackBtn.disabled = false;
